@@ -29,14 +29,17 @@ export function SceneManager({ children, scrollHeight = '1200vh' }: { children: 
 
     const ctx = gsap.context(() => {
       // Create the master timeline with ScrollTrigger scrub
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: 'top top',
           end: 'bottom bottom',
-        scrub: 1.2, // Cinematic inertia — smooth but responsive, matched to Lenis quartic easing
+          // Tighter scrub on mobile so touch swipes feel responsive, not laggy
+          scrub: isTouchDevice ? 0.6 : 1.2,
         },
-        defaults: { ease: 'none' }, // Sub-timelines define their own easing
+        defaults: { ease: 'none' },
       });
 
       // Anchor the timeline to exactly 1.0 duration using a spacer

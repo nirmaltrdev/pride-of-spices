@@ -32,12 +32,18 @@ export function useLenis() {
   useEffect(() => {
     if (prefersReducedMotion) return;
 
+    // Detect touch/mobile device
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
     const lenis = new Lenis({
-      duration: 1.9,
+      // On mobile use shorter duration so the cinematic scrub feels responsive
+      duration: isTouchDevice ? 1.2 : 1.9,
       // Quartic ease-out: feels like a dolly with inertia gradually losing momentum
       easing: (t: number) => 1 - Math.pow(1 - t, 4),
       smoothWheel: true,
-      touchMultiplier: 2.5,
+      // Critical: enables Lenis smooth-scroll on touch/mobile devices
+      smoothTouch: isTouchDevice,
+      touchMultiplier: isTouchDevice ? 1.8 : 2.5,
       wheelMultiplier: 1.0,
     });
 
@@ -50,6 +56,10 @@ export function useLenis() {
     // Critical: Connect Lenis to GSAP's ticker to keep ScrollTrigger in sync.
     // This prevents the scroll jitter caused by two separate scroll loops.
     lenis.on('scroll', ScrollTrigger.update);
+
+    // Critical for mobile: prevents viewport resize (address bar show/hide) from
+    // breaking the scroll scrub by normalizing the scroll position.
+    ScrollTrigger.normalizeScroll(true);
 
     // Store ticker callback reference so we can remove it on cleanup
     const tickerCallback = (time: number) => {
