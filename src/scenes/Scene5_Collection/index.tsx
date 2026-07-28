@@ -335,7 +335,14 @@ export function Scene5_Collection() {
       <div
         ref={scrollableRef}
         className="relative w-full h-full overflow-y-auto overflow-x-hidden"
-        style={{ pointerEvents: 'auto' }}
+        style={{
+          pointerEvents: 'auto',
+          // Required for native touch scroll inside this inner container on iOS/Android
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          // Ensure this stacking context doesn't swallow touch events
+          overscrollBehavior: 'contain',
+        }}
         data-lenis-prevent
       >
 
