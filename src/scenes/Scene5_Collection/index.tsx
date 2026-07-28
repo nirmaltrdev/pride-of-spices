@@ -354,8 +354,8 @@ export function Scene5_Collection() {
         <div
           ref={headerOuterRef}
           style={{
-            paddingTop: 'clamp(22vh, 30vh, 38vh)',
-            paddingBottom: 'clamp(5rem, 9vh, 7rem)',
+            paddingTop: 'clamp(12vh, 22vh, 38vh)',
+            paddingBottom: 'clamp(4rem, 8vh, 7rem)',
             paddingLeft: 'clamp(1.5rem, 6vw, 6rem)',
             paddingRight: 'clamp(1.5rem, 6vw, 6rem)',
             overflow: 'hidden', // Contain GSAP y animation within this box
@@ -369,8 +369,8 @@ export function Scene5_Collection() {
             <p
               className="font-sans uppercase"
               style={{
-                fontSize: 'clamp(0.58rem, 1.2vw, 0.72rem)',
-                letterSpacing: '0.38em',
+                fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)',
+                letterSpacing: '0.32em',
                 color: 'rgba(212,147,42,0.85)',
                 marginBottom: '1.25rem',
               }}
@@ -637,15 +637,14 @@ export function Scene5_Collection() {
             ))}
           </div>
 
-          {/* CTA row */}
+          {/* CTA row — stacks vertically on mobile, horizontal on tablet+ */}
           <div
-            className="flex flex-col sm:flex-row items-center justify-center w-full"
-            style={{ gap: 'clamp(0.75rem, 2vw, 1.25rem)' }}
+            className="cta-row"
+            style={{ width: '100%', maxWidth: '600px' }}
           >
             <a
               href="mailto:hello@prideofspices.com"
               className="btn-gold"
-              style={{ minWidth: 'clamp(180px, 30vw, 260px)' }}
             >
               Make an Enquiry
             </a>
@@ -656,14 +655,20 @@ export function Scene5_Collection() {
                 scrollToPercent(0);
               }}
               className="btn-ghost"
-              style={{ minWidth: 'clamp(180px, 30vw, 260px)' }}
             >
               Return to Arrival ↑
             </a>
           </div>
 
-          {/* Copyright */}
-          <p className="font-sans text-cream/20 text-center" style={{ fontSize: '0.68rem', letterSpacing: '0.12em' }}>
+          {/* Copyright — respects home indicator on iPhone */}
+          <p
+            className="font-sans text-cream/20 text-center"
+            style={{
+              fontSize: '0.68rem',
+              letterSpacing: '0.12em',
+              paddingBottom: 'max(0px, env(safe-area-inset-bottom))',
+            }}
+          >
             © {new Date().getFullYear()} Pride of Spices · Wayanad, Kerala, India
           </p>
         </div>

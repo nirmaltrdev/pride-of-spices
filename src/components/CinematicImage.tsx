@@ -64,10 +64,14 @@ export function CinematicImage({
      * The <picture> element acts purely as a container. Sizing classes (w-full, h-full)
      * should be on this wrapper. The object-cover/object-position is on the <img> inside.
      * This is the correct semantic structure per MDN spec.
+     *
+     * background: '#030703' is the dark forest base. This ensures that during image load
+     * (opacity: 0 on <img>) and for PNG assets with transparent regions, no browser
+     * checkerboard ever shows. Transparent pixels render against this solid dark base.
      */
     <picture
       className={`block overflow-hidden relative ${className}`}
-      style={style}
+      style={{ background: '#030703', ...style }}
     >
       {asset.optimizedSources?.avif && (
         <source type="image/avif" srcSet={asset.optimizedSources.avif} sizes={sizes} />

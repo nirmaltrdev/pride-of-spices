@@ -187,17 +187,17 @@ export function Scene4_5_Honey() {
         style={{ opacity: 0 }}
       >
         <div
-          className="text-center max-w-2xl mx-4 rounded-2xl"
+          className="cinematic-card text-center"
           style={{
-            background: 'rgba(12,8,3,0.62)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            background: 'rgba(12,8,3,0.65)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(201,168,76,0.14)',
-            padding: 'clamp(1.8rem, 4.5vw, 3rem) clamp(2rem, 6vw, 4rem)',
+            padding: 'clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.5)'
           }}
         >
-          <p className="font-sans tracking-[0.4em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.55rem, 1.2vw, 0.7rem)' }}>
+          <p className="font-sans tracking-[0.34em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
             The Golden Wilds
           </p>
           <h2
@@ -213,7 +213,7 @@ export function Scene4_5_Honey() {
             Sourced from the<br />
             <span className="italic" style={{ color: '#DBBF6A' }}>untamed cliffs.</span>
           </h2>
-          <p className="font-sans text-cream/65 mt-6 leading-relaxed max-w-lg mx-auto" style={{ fontSize: 'clamp(0.78rem, 1.5vw, 0.95rem)' }}>
+          <p className="font-sans text-cream/65 mt-6 leading-relaxed max-w-lg mx-auto" style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)' }}>
             Collected by the Kattunayakan tribes deep within the Nilgiri Biosphere.
             No smoke. No disruption. Just the pure, unpasteurized nectar
             of the wild Rock Bee.
@@ -228,17 +228,17 @@ export function Scene4_5_Honey() {
         style={{ opacity: 0 }}
       >
         <div
-          className="text-center max-w-2xl mx-4 rounded-2xl"
+          className="cinematic-card text-center"
           style={{
-            background: 'rgba(12,8,3,0.62)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            background: 'rgba(12,8,3,0.65)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(201,168,76,0.14)',
-            padding: 'clamp(1.8rem, 4.5vw, 3rem) clamp(2rem, 6vw, 4rem)',
+            padding: 'clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.5)'
           }}
         >
-          <p className="font-sans tracking-[0.4em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.55rem, 1.2vw, 0.7rem)' }}>
+          <p className="font-sans tracking-[0.34em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
             Raw &amp; Unfiltered
           </p>
           <h2
@@ -254,7 +254,7 @@ export function Scene4_5_Honey() {
             Every drop tells<br />
             <span className="italic" style={{ color: '#DBBF6A' }}>the forest's story.</span>
           </h2>
-          <p className="font-sans text-cream/65 mt-6 leading-relaxed max-w-lg mx-auto" style={{ fontSize: 'clamp(0.78rem, 1.5vw, 0.95rem)' }}>
+          <p className="font-sans text-cream/65 mt-6 leading-relaxed max-w-lg mx-auto" style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)' }}>
             Each batch carries the unique floral signature of the seasonal bloom.
             Dark and resinous from the jackfruit season. Raw, alive, and utterly
             unlike any processed honey.

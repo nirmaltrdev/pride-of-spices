@@ -178,17 +178,17 @@ export function Scene4_Harvest() {
         style={{ opacity: 0 }}
       >
         <div
-          className="text-center max-w-xl mx-4 rounded-2xl"
+          className="cinematic-card text-center"
           style={{
-            background: 'rgba(8,6,4,0.66)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            background: 'rgba(8,6,4,0.68)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.07)',
-            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.8rem, 5vw, 3.5rem)',
+            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.5rem, 4vw, 3.5rem)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.55)'
           }}
         >
-          <p className="font-sans tracking-[0.38em] uppercase mb-5" style={{ color: 'rgba(212,147,42,0.9)', fontSize: 'clamp(0.55rem, 1.2vw, 0.7rem)' }}>
+          <p className="font-sans tracking-[0.32em] uppercase mb-5" style={{ color: 'rgba(212,147,42,0.9)', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
             Generations of craft
           </p>
           <h2
@@ -218,17 +218,17 @@ export function Scene4_Harvest() {
         style={{ opacity: 0 }}
       >
         <div
-          className="text-center max-w-xl mx-4 rounded-2xl"
+          className="cinematic-card text-center"
           style={{
-            background: 'rgba(8,6,4,0.66)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            background: 'rgba(8,6,4,0.68)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.07)',
-            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.8rem, 5vw, 3.5rem)',
+            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.5rem, 4vw, 3.5rem)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.55)'
           }}
         >
-          <p className="font-sans tracking-[0.38em] uppercase mb-5" style={{ color: 'rgba(212,147,42,0.9)', fontSize: 'clamp(0.55rem, 1.2vw, 0.7rem)' }}>
+          <p className="font-sans tracking-[0.32em] uppercase mb-5" style={{ color: 'rgba(212,147,42,0.9)', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
             The Curing Process
           </p>
           <h2

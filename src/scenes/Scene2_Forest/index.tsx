@@ -266,20 +266,23 @@ export function Scene2_Forest() {
       {/* === NARRATIVE STANZA: Cinematic text card === */}
       <div
         ref={stanzaRef}
-        className="absolute inset-0 flex flex-col items-center justify-end pointer-events-none pb-20"
-        style={{ opacity: 0 }}
+        className="absolute inset-0 flex flex-col items-center justify-end pointer-events-none"
+        style={{
+          opacity: 0,
+          paddingBottom: 'clamp(3rem, 8vh, 5rem)',
+        }}
       >
         <div
-          className="text-center px-8 max-w-3xl"
+          className="cinematic-card text-center px-8"
           style={{
-            background: 'linear-gradient(to top, rgba(2,10,5,0.85) 0%, rgba(2,10,5,0.6) 60%, transparent 100%)',
-            padding: 'clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 4rem)',
+            background: 'linear-gradient(to top, rgba(2,10,5,0.88) 0%, rgba(2,10,5,0.65) 60%, transparent 100%)',
+            padding: 'clamp(1.75rem, 4.5vw, 3rem) clamp(1.5rem, 4vw, 4rem)',
             borderRadius: '0.5rem'
           }}
         >
           <p
-            className="font-sans text-cream/50 tracking-[0.42em] uppercase mb-5"
-            style={{ fontSize: 'clamp(0.52rem, 1.2vw, 0.68rem)' }}
+            className="font-sans text-cream/50 tracking-[0.38em] uppercase mb-5"
+            style={{ fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}
           >
             Western Ghats, Kerala · 800m elevation
           </p>
@@ -299,11 +302,11 @@ export function Scene2_Forest() {
           <p
             className="font-sans text-cream/60 mt-6 leading-relaxed tracking-wide max-w-xl mx-auto"
             style={{
-              fontSize: 'clamp(0.8rem, 1.6vw, 1rem)',
+              fontSize: 'clamp(0.82rem, 1.6vw, 1rem)',
               textShadow: '0 2px 16px rgba(0,0,0,0.7)'
             }}
           >
-            Where the monsoon meets the mountains, centuries-old pepper vines<br />
+            Where the monsoon meets the mountains, centuries-old pepper vines
             weave through the untouched forests of Wayanad.
           </p>
         </div>

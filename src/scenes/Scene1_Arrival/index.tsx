@@ -327,7 +327,11 @@ export function Scene1_Arrival() {
       <div
         ref={titleWrapRef}
         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto"
-        style={{ opacity: 1 }}
+        style={{
+          opacity: 1,
+          // Shift content up slightly on notch devices so it doesn't sit behind Dynamic Island
+          paddingTop: 'env(safe-area-inset-top)',
+        }}
       >
         <div className="text-center px-6 md:px-4">
           {/* Eyebrow */}
@@ -335,8 +339,8 @@ export function Scene1_Arrival() {
             ref={eyebrowRef}
             className="font-sans text-cream/60 uppercase select-none"
             style={{
-              fontSize: 'clamp(0.55rem, 1.4vw, 0.75rem)',
-              letterSpacing: '0.45em',
+              fontSize: 'clamp(0.68rem, 1.4vw, 0.78rem)',
+              letterSpacing: '0.38em',
               textShadow: '0 1px 12px rgba(0,0,0,0.8)',
               opacity: 0,
             }}
@@ -347,12 +351,13 @@ export function Scene1_Arrival() {
           {/* Main Title — refined text shadow for adaptive contrast */}
           <h1
             ref={headingRef}
-            className="font-serif text-cream select-none mt-4"
+            className="font-serif text-cream select-none"
             style={{
-              fontSize: 'clamp(3.2rem, 11vw, 10rem)',
-              lineHeight: 0.98,
+              fontSize: 'clamp(2.6rem, 11vw, 10rem)',
+              lineHeight: 1.02,
               letterSpacing: '-0.01em',
               textWrap: 'balance',
+              marginTop: 'clamp(0.75rem, 2vh, 1.25rem)',
               // Multi-layer text shadow: strong offset shadow + subtle mid glow
               textShadow: '0 4px 40px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.9), 0 16px 80px rgba(0,0,0,0.5)',
               opacity: 0,
@@ -370,9 +375,11 @@ export function Scene1_Arrival() {
           {/* Subtitle */}
           <p
             ref={subtitleRef}
-            className="font-sans text-cream/65 tracking-[0.2em] mt-3 select-none"
+            className="font-sans text-cream/65 select-none"
             style={{
-              fontSize: 'clamp(0.6rem, 1.4vw, 0.85rem)',
+              fontSize: 'clamp(0.7rem, 1.4vw, 0.85rem)',
+              letterSpacing: '0.18em',
+              marginTop: 'clamp(0.75rem, 1.5vh, 1rem)',
               textShadow: '0 2px 16px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.8)',
               textWrap: 'balance',
               opacity: 0,

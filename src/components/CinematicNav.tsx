@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { scrollToPercent } from '../core/lenisInstance';
+import { scrollToPercent, pauseLenis, resumeLenis } from '../core/lenisInstance';
 import gsap from 'gsap';
 
 /**
@@ -89,15 +89,17 @@ export function CinematicNav() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Prevent body scroll when mobile menu is open
+  // Prevent body scroll when mobile menu is open.
+  // Uses pauseLenis/resumeLenis so Lenis (on desktop) stays in sync.
+  // On mobile (Lenis disabled), these fall back to body.style.overflow safely.
   useEffect(() => {
     if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
+      pauseLenis();
     } else {
-      document.body.style.overflow = '';
+      resumeLenis();
     }
     return () => {
-      document.body.style.overflow = '';
+      resumeLenis();
     };
   }, [mobileOpen]);
 
@@ -127,13 +129,16 @@ export function CinematicNav() {
           }}
         />
 
-        {/* Nav Bar Body */}
+        {/* Nav Bar Body — padded to account for Dynamic Island / notch via safe-area-inset-top */}
         <div
           className="flex items-center justify-between"
           style={{
-            padding: '0 clamp(1.25rem, 4vw, 3.5rem)',
-            height: '64px',
-            background: isScrolling ? 'rgba(6,10,6,0.88)' : 'rgba(8,12,8,0.72)',
+            paddingLeft: 'clamp(1.25rem, 4vw, 3.5rem)',
+            paddingRight: 'clamp(1.25rem, 4vw, 3.5rem)',
+            paddingTop: 'max(0px, env(safe-area-inset-top))',
+            // Height expands when there is a safe-area inset (notch devices)
+            minHeight: 'calc(56px + env(safe-area-inset-top))',
+            background: isScrolling ? 'rgba(6,10,6,0.92)' : 'rgba(8,12,8,0.78)',
             backdropFilter: isScrolling ? 'blur(32px) saturate(1.4)' : 'blur(20px) saturate(1.2)',
             WebkitBackdropFilter: isScrolling ? 'blur(32px) saturate(1.4)' : 'blur(20px) saturate(1.2)',
             borderBottom: '1px solid rgba(255,255,255,0.05)',
@@ -325,11 +330,22 @@ export function CinematicNav() {
           transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)',
         }}
       >
-        <div className="flex flex-col items-center justify-center h-full" style={{ gap: 'clamp(1.5rem, 4vh, 2.5rem)' }}>
+        {/* Add safe area insets to mobile menu content so it doesn't clash with Dynamic Island or home indicator */}
+        <div
+          className="flex flex-col items-center justify-center h-full"
+          style={{
+            gap: 'clamp(1.5rem, 4vh, 2.5rem)',
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
           {/* Brand */}
           <p
-            className="font-serif text-cream/30 absolute top-8 left-6"
-            style={{ fontSize: 'clamp(0.8rem, 2vw, 0.95rem)' }}
+            className="font-serif text-cream/30 absolute left-6"
+            style={{
+              top: 'calc(1.5rem + env(safe-area-inset-top))',
+              fontSize: 'clamp(0.8rem, 2vw, 0.95rem)',
+            }}
           >
             The Pride <span className="italic" style={{ color: 'rgba(212,147,42,0.6)' }}>of Spices</span>
           </p>
@@ -386,7 +402,7 @@ export function CinematicNav() {
           onClick={() => setMobileOpen(false)}
           className="absolute font-sans uppercase text-cream/50 hover:text-cream/90 transition-colors"
           style={{
-            top: '1.25rem',
+            top: 'calc(1.25rem + env(safe-area-inset-top))',
             right: '1.5rem',
             fontSize: 'clamp(0.6rem, 1.2vw, 0.7rem)',
             letterSpacing: '0.22em',

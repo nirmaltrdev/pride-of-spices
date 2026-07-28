@@ -225,13 +225,22 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
         style={{
           background: 'rgba(8,13,8,0.97)',
           borderLeft: '1px solid rgba(255,255,255,0.04)',
+          // Enable native touch scroll on iOS inside this panel
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          overscrollBehavior: 'contain',
+          // Account for home indicator on iPhone
+          paddingBottom: 'env(safe-area-inset-bottom)',
         }}
         data-lenis-prevent
       >
         {/* Mobile image strip — visible only on mobile (hidden md:block) */}
         <div
           className="block md:hidden relative"
-          style={{ height: 'clamp(200px, 40vw, 280px)', overflow: 'hidden' }}
+          style={{
+            height: 'clamp(160px, 38vw, 280px)',
+            overflow: 'hidden',
+          }}
           aria-hidden="true"
         >
           <CinematicImage
@@ -257,8 +266,8 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
               <p
                 className="font-sans uppercase"
                 style={{
-                  fontSize: 'clamp(0.58rem, 1.1vw, 0.68rem)',
-                  letterSpacing: '0.4em',
+                  fontSize: 'clamp(0.68rem, 1.1vw, 0.78rem)',
+                  letterSpacing: '0.36em',
                   color: 'rgba(212,147,42,0.8)',
                   marginBottom: '0.75rem',
                 }}
@@ -301,8 +310,8 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                 <h3
                   className="font-sans uppercase"
                   style={{
-                    fontSize: 'clamp(0.58rem, 1.1vw, 0.68rem)',
-                    letterSpacing: '0.32em',
+                    fontSize: 'clamp(0.68rem, 1.1vw, 0.78rem)',
+                    letterSpacing: '0.28em',
                     color: 'rgba(212,147,42,0.75)',
                     marginBottom: '0.875rem',
                   }}
@@ -529,86 +538,86 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                   onSubmit={handleFormSubmit}
                   noValidate
                 >
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                    <div>
-                      <label
-                        htmlFor="inquiry-name"
-                        className="block font-sans uppercase text-cream/40"
-                        style={{ fontSize: '0.65rem', letterSpacing: '0.2em', marginBottom: '0.625rem' }}
-                      >
-                        Name <span style={{ color: 'rgba(212,147,42,0.82)' }}>*</span>
-                      </label>
-                      <input
-                        id="inquiry-name"
-                        type="text"
-                        required
-                        value={formState.name}
-                        onChange={e => setFormState(s => ({ ...s, name: e.target.value }))}
-                        style={inputStyle}
-                        onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
-                        onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="inquiry-email"
-                        className="block font-sans uppercase text-cream/40"
-                        style={{ fontSize: '0.65rem', letterSpacing: '0.2em', marginBottom: '0.625rem' }}
-                      >
-                        Email <span style={{ color: 'rgba(212,147,42,0.82)' }}>*</span>
-                      </label>
-                      <input
-                        id="inquiry-email"
-                        type="email"
-                        required
-                        value={formState.email}
-                        onChange={e => setFormState(s => ({ ...s, email: e.target.value }))}
-                        style={inputStyle}
-                        onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
-                        onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
-                      />
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
+                  <div>
+                    <label
+                      htmlFor="inquiry-name"
+                      className="block font-sans uppercase text-cream/40"
+                      style={{ fontSize: '0.68rem', letterSpacing: '0.18em', marginBottom: '0.625rem' }}
+                    >
+                      Name <span style={{ color: 'rgba(212,147,42,0.82)' }}>*</span>
+                    </label>
+                    <input
+                      id="inquiry-name"
+                      type="text"
+                      required
+                      value={formState.name}
+                      onChange={e => setFormState(s => ({ ...s, name: e.target.value }))}
+                      style={inputStyle}
+                      onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
+                      onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
+                    />
                   </div>
+                  <div>
+                    <label
+                      htmlFor="inquiry-email"
+                      className="block font-sans uppercase text-cream/40"
+                      style={{ fontSize: '0.68rem', letterSpacing: '0.18em', marginBottom: '0.625rem' }}
+                    >
+                      Email <span style={{ color: 'rgba(212,147,42,0.82)' }}>*</span>
+                    </label>
+                    <input
+                      id="inquiry-email"
+                      type="email"
+                      required
+                      value={formState.email}
+                      onChange={e => setFormState(s => ({ ...s, email: e.target.value }))}
+                      style={inputStyle}
+                      onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
+                      onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
+                    />
+                  </div>
+                </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                    <div>
-                      <label
-                        htmlFor="inquiry-country"
-                        className="block font-sans uppercase text-cream/40"
-                        style={{ fontSize: '0.65rem', letterSpacing: '0.2em', marginBottom: '0.625rem' }}
-                      >
-                        Country <span style={{ color: 'rgba(212,147,42,0.82)' }}>*</span>
-                      </label>
-                      <input
-                        id="inquiry-country"
-                        type="text"
-                        required
-                        value={formState.country}
-                        onChange={e => setFormState(s => ({ ...s, country: e.target.value }))}
-                        style={inputStyle}
-                        onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
-                        onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="inquiry-quantity"
-                        className="block font-sans uppercase text-cream/40"
-                        style={{ fontSize: '0.65rem', letterSpacing: '0.2em', marginBottom: '0.625rem' }}
-                      >
-                        Quantity (Approx)
-                      </label>
-                      <input
-                        id="inquiry-quantity"
-                        type="text"
-                        value={formState.quantity}
-                        onChange={e => setFormState(s => ({ ...s, quantity: e.target.value }))}
-                        style={inputStyle}
-                        onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
-                        onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
-                      />
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.25rem' }}>
+                  <div>
+                    <label
+                      htmlFor="inquiry-country"
+                      className="block font-sans uppercase text-cream/40"
+                      style={{ fontSize: '0.68rem', letterSpacing: '0.18em', marginBottom: '0.625rem' }}
+                    >
+                      Country <span style={{ color: 'rgba(212,147,42,0.82)' }}>*</span>
+                    </label>
+                    <input
+                      id="inquiry-country"
+                      type="text"
+                      required
+                      value={formState.country}
+                      onChange={e => setFormState(s => ({ ...s, country: e.target.value }))}
+                      style={inputStyle}
+                      onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
+                      onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
+                    />
                   </div>
+                  <div>
+                    <label
+                      htmlFor="inquiry-quantity"
+                      className="block font-sans uppercase text-cream/40"
+                      style={{ fontSize: '0.68rem', letterSpacing: '0.18em', marginBottom: '0.625rem' }}
+                    >
+                      Quantity (Approx)
+                    </label>
+                    <input
+                      id="inquiry-quantity"
+                      type="text"
+                      value={formState.quantity}
+                      onChange={e => setFormState(s => ({ ...s, quantity: e.target.value }))}
+                      style={inputStyle}
+                      onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
+                      onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
+                    />
+                  </div>
+                </div>
 
                   <div>
                     <label

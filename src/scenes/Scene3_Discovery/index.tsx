@@ -242,17 +242,17 @@ export function Scene3_Discovery() {
         style={{ opacity: 0 }}
       >
         <div
-          className="text-center max-w-xl mx-4 rounded-2xl"
+          className="cinematic-card text-center"
           style={{
-            background: 'rgba(8,14,8,0.62)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            background: 'rgba(8,14,8,0.65)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(255,255,255,0.07)',
-            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.8rem, 5vw, 3.5rem)',
+            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.5rem, 4vw, 3.5rem)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.5)'
           }}
         >
-          <p className="font-sans tracking-[0.38em] uppercase mb-5" style={{ color: 'rgba(212,147,42,0.9)', fontSize: 'clamp(0.55rem, 1.2vw, 0.7rem)' }}>
+          <p className="font-sans tracking-[0.32em] uppercase mb-5" style={{ color: 'rgba(212,147,42,0.9)', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
             Hidden in the canopy
           </p>
           <h2
@@ -268,8 +268,8 @@ export function Scene3_Discovery() {
             The pure essence<br />
             <span className="italic" style={{ color: 'rgba(240,230,195,0.95)' }}>of Wayanad.</span>
           </h2>
-          <p className="font-sans text-cream/65 mt-5 leading-relaxed" style={{ fontSize: 'clamp(0.78rem, 1.5vw, 0.95rem)' }}>
-            Dense forests at 800 metres elevation. Morning mist on the leaves.<br />
+          <p className="font-sans text-cream/65 mt-5 leading-relaxed" style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)' }}>
+            Dense forests at 800 metres elevation. Morning mist on the leaves.
             The ancient vine that has fed the spice routes of the world.
           </p>
         </div>
@@ -282,17 +282,17 @@ export function Scene3_Discovery() {
         style={{ opacity: 0 }}
       >
         <div
-          className="text-center max-w-xl mx-4 rounded-2xl"
+          className="cinematic-card text-center"
           style={{
-            background: 'rgba(8,10,8,0.68)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            background: 'rgba(8,10,8,0.70)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
             border: '1px solid rgba(212,147,42,0.1)',
-            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.8rem, 5vw, 3.5rem)',
+            padding: 'clamp(1.5rem, 4vw, 2.8rem) clamp(1.5rem, 4vw, 3.5rem)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.55)'
           }}
         >
-          <p className="font-sans tracking-[0.38em] uppercase mb-5" style={{ color: 'rgba(140,180,220,0.8)', fontSize: 'clamp(0.55rem, 1.2vw, 0.7rem)' }}>
+          <p className="font-sans tracking-[0.32em] uppercase mb-5" style={{ color: 'rgba(140,180,220,0.8)', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
             The Monsoon &amp; Ripening
           </p>
           <h2
@@ -308,7 +308,7 @@ export function Scene3_Discovery() {
             Nourished by rain.<br />
             <span className="italic" style={{ color: 'rgba(240,230,195,0.9)' }}>Perfected by time.</span>
           </h2>
-          <p className="font-sans text-cream/60 mt-5 leading-relaxed max-w-sm mx-auto" style={{ fontSize: 'clamp(0.78rem, 1.5vw, 0.95rem)' }}>
+          <p className="font-sans text-cream/60 mt-5 leading-relaxed max-w-sm mx-auto" style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)' }}>
             Heavy Kerala rains nourish the vines. Slowly the berries ripen
             from vibrant green to a rich sunset red — signaling the harvest.
           </p>

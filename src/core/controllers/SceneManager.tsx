@@ -36,8 +36,9 @@ export function SceneManager({ children, scrollHeight = '1200vh' }: { children: 
           trigger: containerRef.current,
           start: 'top top',
           end: 'bottom bottom',
-          // Tighter scrub on mobile so touch swipes feel responsive, not laggy
-          scrub: isTouchDevice ? 0.6 : 1.2,
+          // On mobile, Lenis is disabled so native scroll drives ScrollTrigger.
+          // Use a tight scrub so cinematic scenes track finger movement closely.
+          scrub: isTouchDevice ? 0.4 : 1.2,
         },
         defaults: { ease: 'none' },
       });
