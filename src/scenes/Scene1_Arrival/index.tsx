@@ -156,12 +156,18 @@ export function Scene1_Arrival() {
     };
 
     // Gate animation start on font readiness — eliminates invisible-text flash
-    if (document.fonts.readyState === 'loaded') {
+    if (document.fonts && document.fonts.status === 'loaded') {
       startEntryAnimation();
+    } else if (document.fonts && document.fonts.ready) {
+      document.fonts.ready
+        .then(() => {
+          if (isActive) startEntryAnimation();
+        })
+        .catch(() => {
+          if (isActive) startEntryAnimation();
+        });
     } else {
-      document.fonts.ready.then(() => {
-        if (isActive) startEntryAnimation();
-      });
+      startEntryAnimation();
     }
 
     return () => {
