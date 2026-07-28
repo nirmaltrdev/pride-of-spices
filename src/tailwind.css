@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   THE PRIDE OF SPICES — Design Tokens (Tailwind CSS v4)
+   ═══════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Brand Colors ── */
+  --color-terracotta: #C2452D;
+  --color-terracotta-dark: #9B3624;
+  --color-terracotta-light: #D4674F;
+  --color-turmeric: #D4932A;
+  --color-turmeric-dark: #B07A1E;
+  --color-turmeric-light: #E8B44D;
+  --color-forest: #2D5016;
+  --color-forest-dark: #1E3A0E;
+  --color-forest-light: #3D6B1E;
+  --color-forest-muted: #4A7C2E;
+  --color-charcoal: #1A1A1A;
+  --color-charcoal-light: #2D2D2D;
+  --color-cream: #FDF6EC;
+  --color-cream-dark: #F5EBD9;
+  --color-ivory: #FAF3E8;
+  --color-gold: #C9A84C;
+  --color-gold-light: #DBBF6A;
+  --color-gold-dark: #A88B3A;
+  --color-mist: rgba(255, 255, 248, 0.6);
+  --color-honey: #D4932A;
+  --color-pepper: #2D2017;
+  --color-cardamom: #5A7247;
+
+  /* ── Typography ── */
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* ── 8px Spacing Scale ── */
+  --space-px: 1px;
+  --space-0-5: 0.25rem;   /*  4px */
+  --space-1: 0.5rem;      /*  8px */
+  --space-1-5: 0.75rem;   /* 12px */
+  --space-2: 1rem;        /* 16px */
+  --space-2-5: 1.25rem;   /* 20px */
+  --space-3: 1.5rem;      /* 24px */
+  --space-4: 2rem;        /* 32px */
+  --space-5: 2.5rem;      /* 40px */
+  --space-6: 3rem;        /* 48px */
+  --space-7: 3.5rem;      /* 56px */
+  --space-8: 4rem;        /* 64px */
+  --space-10: 5rem;       /* 80px */
+  --space-12: 6rem;       /* 96px */
+  --space-16: 8rem;       /* 128px */
+  --space-20: 10rem;      /* 160px */
+  --space-24: 12rem;      /* 192px */
+
+  /* ── Fluid Spacing (responsive via clamp) ── */
+  --space-section: clamp(5rem, 10vw, 8rem);
+  --space-section-sm: clamp(3rem, 6vw, 5rem);
+  --space-component: clamp(2rem, 4vw, 3.5rem);
+  --space-card-gap: clamp(0.75rem, 1.5vw, 1.25rem);
+  --space-card-pad: clamp(1rem, 2.5vw, 1.75rem);
+  --space-panel-x: clamp(1.5rem, 5vw, 5rem);
+  --space-panel-y: clamp(3rem, 6vh, 6rem);
+
+  /* ── Legacy section spacing (kept for backward compat) ── */
+  --spacing-section: 8rem;
+  --spacing-section-sm: 5rem;
+
+  /* ── Border Radii ── */
+  --radius-card: clamp(0.75rem, 1.5vw, 1.25rem);
+  --radius-card-sm: 0.625rem;
+  --radius-overlay: 0;
+  --radius-btn: 2px;
+  --radius-badge: 0.25rem;
+
+  /* ── Cinematic Multi-layer Shadows ── */
+  --shadow-card:
+    0 4px 16px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-card-hover:
+    0 24px 60px rgba(0, 0, 0, 0.62),
+    0 0 0 1.5px rgba(212, 147, 42, 0.48),
+    0 8px 24px rgba(212, 147, 42, 0.07);
+  --shadow-overlay:
+    0 48px 120px rgba(0, 0, 0, 0.82);
+  --shadow-nav:
+    0 1px 0 rgba(255, 255, 255, 0.055),
+    0 2px 24px rgba(0, 0, 0, 0.18);
+  --shadow-text:
+    0 2px 16px rgba(0, 0, 0, 0.8),
+    0 1px 4px rgba(0, 0, 0, 0.9);
+
+  /* ── Animations ── */
+  --ease-cinematic: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-fade-up: fade-up 0.8s var(--ease-cinematic) forwards;
+  --animate-fade-in: fade-in 0.6s var(--ease-smooth) forwards;
+  --animate-scale-in: scale-in 0.6s var(--ease-cinematic) forwards;
+  --animate-slide-left: slide-left 0.8s var(--ease-cinematic) forwards;
+  --animate-slide-right: slide-right 0.8s var(--ease-cinematic) forwards;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-soft: pulse-soft 3s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+}
+
+/* ── Keyframes ── */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}

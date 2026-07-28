@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.prideofspices.com/sitemap.xml
+
+# Block common crawl bots from assets
+User-agent: *
+Disallow: /src/
+Disallow: /node_modules/

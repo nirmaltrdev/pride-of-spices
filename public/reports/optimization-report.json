@@ -1,0 +1,313 @@
+{
+  "timestamp": "2026-07-07T06:37:21.674Z",
+  "results": [
+    {
+      "originalAsset": "act1-mist.jpg",
+      "originalSizeKb": "401.05",
+      "optimized": {
+        "webpSizeKb": "314.57",
+        "webpRatio": "78.4%",
+        "avifSizeKb": "292.70",
+        "avifRatio": "73.0%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "black_pepper.jpg",
+      "originalSizeKb": "714.41",
+      "optimized": {
+        "webpSizeKb": "97.30",
+        "webpRatio": "13.6%",
+        "avifSizeKb": "82.68",
+        "avifRatio": "11.6%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "cardamom.jpg",
+      "originalSizeKb": "663.91",
+      "optimized": {
+        "webpSizeKb": "84.23",
+        "webpRatio": "12.7%",
+        "avifSizeKb": "73.76",
+        "avifRatio": "11.1%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "cardamom_product.jpg",
+      "originalSizeKb": "493.86",
+      "optimized": {
+        "webpSizeKb": "40.18",
+        "webpRatio": "8.1%",
+        "avifSizeKb": "34.23",
+        "avifRatio": "6.9%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "chili.jpg",
+      "originalSizeKb": "625.82",
+      "optimized": {
+        "webpSizeKb": "587.17",
+        "webpRatio": "93.8%",
+        "avifSizeKb": "526.58",
+        "avifRatio": "84.1%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "cinnamon-nutmeg.jpg",
+      "originalSizeKb": "256.27",
+      "optimized": {
+        "webpSizeKb": "170.83",
+        "webpRatio": "66.7%",
+        "avifSizeKb": "152.64",
+        "avifRatio": "59.6%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "cinnamon.jpg",
+      "originalSizeKb": "733.41",
+      "optimized": {
+        "webpSizeKb": "100.93",
+        "webpRatio": "13.8%",
+        "avifSizeKb": "90.68",
+        "avifRatio": "12.4%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "clove.jpg",
+      "originalSizeKb": "740.76",
+      "optimized": {
+        "webpSizeKb": "109.80",
+        "webpRatio": "14.8%",
+        "avifSizeKb": "95.38",
+        "avifRatio": "12.9%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "farmer-hands.jpg",
+      "originalSizeKb": "260.79",
+      "optimized": {
+        "webpSizeKb": "166.33",
+        "webpRatio": "63.8%",
+        "avifSizeKb": "142.75",
+        "avifRatio": "54.7%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "foreground_foliage.png",
+      "originalSizeKb": "518.63",
+      "optimized": {
+        "webpSizeKb": "39.19",
+        "webpRatio": "7.6%",
+        "avifSizeKb": "27.21",
+        "avifRatio": "5.2%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "forest-path.jpg",
+      "originalSizeKb": "529.76",
+      "optimized": {
+        "webpSizeKb": "469.62",
+        "webpRatio": "88.6%",
+        "avifSizeKb": "418.84",
+        "avifRatio": "79.1%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "forest_canopy.png",
+      "originalSizeKb": "798.43",
+      "optimized": {
+        "webpSizeKb": "143.87",
+        "webpRatio": "18.0%",
+        "avifSizeKb": "139.06",
+        "avifRatio": "17.4%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "forest_honey.jpg",
+      "originalSizeKb": "678.47",
+      "optimized": {
+        "webpSizeKb": "75.49",
+        "webpRatio": "11.1%",
+        "avifSizeKb": "67.88",
+        "avifRatio": "10.0%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "forest_layer_mountains.png",
+      "originalSizeKb": "689.38",
+      "optimized": {
+        "webpSizeKb": "54.20",
+        "webpRatio": "7.9%",
+        "avifSizeKb": "49.94",
+        "avifRatio": "7.2%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "forest_mist_background.jpg",
+      "originalSizeKb": "737.81",
+      "optimized": {
+        "webpSizeKb": "86.33",
+        "webpRatio": "11.7%",
+        "avifSizeKb": "87.25",
+        "avifRatio": "11.8%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "green_pepper.jpg",
+      "originalSizeKb": "650.92",
+      "optimized": {
+        "webpSizeKb": "74.46",
+        "webpRatio": "11.4%",
+        "avifSizeKb": "64.19",
+        "avifRatio": "9.9%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "hero_bg.png",
+      "originalSizeKb": "877.61",
+      "optimized": {
+        "webpSizeKb": "153.97",
+        "webpRatio": "17.5%",
+        "avifSizeKb": "155.55",
+        "avifRatio": "17.7%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "honey.jpg",
+      "originalSizeKb": "458.16",
+      "optimized": {
+        "webpSizeKb": "351.28",
+        "webpRatio": "76.7%",
+        "avifSizeKb": "342.78",
+        "avifRatio": "74.8%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "honey_bg.png",
+      "originalSizeKb": "722.33",
+      "optimized": {
+        "webpSizeKb": "93.00",
+        "webpRatio": "12.9%",
+        "avifSizeKb": "85.89",
+        "avifRatio": "11.9%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "mid_ground_vegetation.png",
+      "originalSizeKb": "924.29",
+      "optimized": {
+        "webpSizeKb": "166.64",
+        "webpRatio": "18.0%",
+        "avifSizeKb": "156.95",
+        "avifRatio": "17.0%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "noise.png",
+      "originalSizeKb": "98.14",
+      "optimized": {
+        "webpSizeKb": "38.43",
+        "webpRatio": "39.2%",
+        "avifSizeKb": "38.54",
+        "avifRatio": "39.3%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "nutmeg.jpg",
+      "originalSizeKb": "756.41",
+      "optimized": {
+        "webpSizeKb": "101.07",
+        "webpRatio": "13.4%",
+        "avifSizeKb": "89.56",
+        "avifRatio": "11.8%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "pepper.jpg",
+      "originalSizeKb": "407.92",
+      "optimized": {
+        "webpSizeKb": "289.80",
+        "webpRatio": "71.0%",
+        "avifSizeKb": "268.74",
+        "avifRatio": "65.9%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "pepper_powder.jpg",
+      "originalSizeKb": "803.49",
+      "optimized": {
+        "webpSizeKb": "133.78",
+        "webpRatio": "16.7%",
+        "avifSizeKb": "126.32",
+        "avifRatio": "15.7%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "processing.jpg",
+      "originalSizeKb": "268.85",
+      "optimized": {
+        "webpSizeKb": "181.69",
+        "webpRatio": "67.6%",
+        "avifSizeKb": "153.43",
+        "avifRatio": "57.1%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "sunset.jpg",
+      "originalSizeKb": "177.44",
+      "optimized": {
+        "webpSizeKb": "82.47",
+        "webpRatio": "46.5%",
+        "avifSizeKb": "74.86",
+        "avifRatio": "42.2%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "turmeric.jpg",
+      "originalSizeKb": "699.77",
+      "optimized": {
+        "webpSizeKb": "96.89",
+        "webpRatio": "13.8%",
+        "avifSizeKb": "91.15",
+        "avifRatio": "13.0%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "white_pepper.jpg",
+      "originalSizeKb": "607.53",
+      "optimized": {
+        "webpSizeKb": "63.62",
+        "webpRatio": "10.5%",
+        "avifSizeKb": "55.65",
+        "avifRatio": "9.2%"
+      },
+      "failedConversions": []
+    }
+  ]
+}
