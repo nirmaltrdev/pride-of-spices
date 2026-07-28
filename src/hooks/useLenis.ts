@@ -41,10 +41,10 @@ export function useLenis() {
       // Quartic ease-out: feels like a dolly with inertia gradually losing momentum
       easing: (t: number) => 1 - Math.pow(1 - t, 4),
       smoothWheel: true,
-      // Critical: enables Lenis smooth-scroll on touch/mobile devices
-      smoothTouch: isTouchDevice,
+      // Lenis v1.x: touchMultiplier controls touch sensitivity (no smoothTouch option in v1)
       touchMultiplier: isTouchDevice ? 1.8 : 2.5,
       wheelMultiplier: 1.0,
+      infinite: false,
     });
 
     lenisRef.current = lenis;
