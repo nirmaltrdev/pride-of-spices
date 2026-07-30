@@ -61,12 +61,12 @@ export function EnvironmentController() {
         ease: 'power1.inOut'
       }, 0.70);
 
-      // Deep night for Collection
+      // Transition smoothly to dark forest background (#030703 / rgba(3, 7, 3, 0.95)) up to 1.00
       masterTimeline.to(atmosphereRef.current, {
-        backgroundColor: 'rgba(10, 12, 8, 0.75)',
-        duration: 0.1,
+        backgroundColor: 'rgba(3, 7, 3, 0.95)',
+        duration: 0.10,
         ease: 'power2.inOut'
-      }, 0.82);
+      }, 0.90);
 
       // 3. Fog lifecycle
       // Thins as we enter the forest (0-20%)
@@ -76,10 +76,10 @@ export function EnvironmentController() {
         ease: 'power1.out'
       }, 0.10);
 
-      // Returns slightly at dusk for Collection
+      // Returns slightly at dusk for Collection transition
       masterTimeline.to(fogRef.current, {
-        opacity: 0.45,
-        duration: 0.15,
+        opacity: 0.35,
+        duration: 0.18,
         ease: 'power1.in'
       }, 0.78);
     });

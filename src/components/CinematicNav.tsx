@@ -22,9 +22,9 @@ interface NavLink {
 
 const NAV_LINKS: NavLink[] = [
   { label: 'The Forest', pct: 0.13, scene: '02' },
-  { label: 'The Harvest', pct: 0.55, scene: '04' },
+  { label: 'The Harvest', pct: 0.52, scene: '04' },
   { label: 'Wild Honey', pct: 0.70, scene: '4.5' },
-  { label: 'Collection', pct: 0.82, scene: '05' },
+  { label: 'Collection', pct: 0.96, scene: '05' },
 ];
 
 export function CinematicNav() {
@@ -38,6 +38,7 @@ export function CinematicNav() {
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getActiveScene = useCallback((pct: number): number => {
+    if (pct >= 0.94) return 3; // Scene 5: Collection
     for (let i = NAV_LINKS.length - 1; i >= 0; i--) {
       if (pct >= NAV_LINKS[i].pct - 0.02) return i;
     }
@@ -45,12 +46,15 @@ export function CinematicNav() {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => {
+    const handleScroll = () => {
       const scrollY = window.scrollY;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const pct = maxScroll > 0 ? scrollY / maxScroll : 0;
+      // Cap pct to the cinematic scroll range (SceneManager = 900vh, sticky range = 800vh).
+      // This prevents Collection's extra page height from skewing the nav thresholds.
+      const cinematicMaxScroll = window.innerHeight * 8; // 800vh
+      const pct = cinematicMaxScroll > 0 ? Math.min(1, scrollY / cinematicMaxScroll) : 0;
 
-      setScrollPct(pct);
+      setScrollPct(maxScroll > 0 ? scrollY / maxScroll : 0); // progress bar still uses full range
       setVisible(pct > 0.12);
       setActiveScene(getActiveScene(pct));
 
@@ -59,9 +63,12 @@ export function CinematicNav() {
       scrollTimerRef.current = setTimeout(() => setIsScrolling(false), 180);
     };
 
-    window.addEventListener('scroll', onScroll, { passive: true });
+    // Use native window scroll: Lenis dispatches real scroll events to window,
+    // so this works correctly on both desktop (Lenis-driven) and mobile (native).
+    // This removes the fragile getLenisInstance() timing dependency.
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scroll', handleScroll);
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
     };
   }, [getActiveScene]);
@@ -90,20 +97,26 @@ export function CinematicNav() {
   }, []);
 
   // Prevent body scroll when mobile menu is open.
-  // Uses pauseLenis/resumeLenis so Lenis (on desktop) stays in sync.
-  // On mobile (Lenis disabled), these fall back to body.style.overflow safely.
   useEffect(() => {
     if (mobileOpen) {
       pauseLenis();
-    } else {
-      resumeLenis();
+      return () => {
+        resumeLenis();
+      };
     }
-    return () => {
-      resumeLenis();
-    };
   }, [mobileOpen]);
 
   const scrollToPct = useCallback((pct: number) => {
+    if (pct >= 0.95) {
+      const collectionEl = document.getElementById('collection');
+      if (collectionEl) {
+        const top = collectionEl.getBoundingClientRect().top + window.scrollY;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        scrollToPercent(Math.min(1, top / maxScroll));
+        setMobileOpen(false);
+        return;
+      }
+    }
     scrollToPercent(pct);
     setMobileOpen(false);
   }, []);
@@ -113,7 +126,7 @@ export function CinematicNav() {
       <nav
         ref={navRef}
         className="fixed top-0 left-0 right-0 z-[100] will-change-transform"
-        style={{ transform: 'translateY(-80px)', opacity: 0 }}
+        style={{ transform: 'translateY(-80px)', opacity: 0, pointerEvents: visible ? 'auto' : 'none' }}
         role="navigation"
         aria-label="Main navigation"
         id="main-nav"

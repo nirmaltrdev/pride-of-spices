@@ -83,10 +83,8 @@ export function scrollToPercent(pct: number, immediate = false): void {
 export function pauseLenis(): void {
   if (_lenis) {
     _lenis.stop();
-  } else {
-    // Fallback: no Lenis (reduced-motion or not yet initialized)
-    document.body.style.overflow = 'hidden';
   }
+  document.body.style.overflow = 'hidden';
 }
 
 /**
@@ -97,8 +95,6 @@ export function pauseLenis(): void {
 export function resumeLenis(): void {
   if (_lenis) {
     _lenis.start();
-  } else {
-    // Fallback: restore overflow
-    document.body.style.overflow = '';
   }
+  document.body.style.overflow = '';
 }

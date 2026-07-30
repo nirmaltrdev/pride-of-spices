@@ -47,10 +47,11 @@ function App() {
 
         {/* Scene 4.5: The Honey — amber world + tribal story */}
         <Scene4_5_Honey />
-
-        {/* Scene 5: The Collection — premium product exhibition */}
-        <Scene5_Collection />
       </ExperienceShell>
+
+      {/* Scene 5: The Collection — lives outside the sticky cinematic scroll,
+          in natural page flow so its content is fully scrollable */}
+      <Scene5_Collection />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -7,18 +7,13 @@ gsap.registerPlugin(ScrollTrigger);
 import { SceneContext } from './SceneContext';
 
 /**
- * SCENE MANAGER — Version 2 (Fixed Timeline Architecture)
+ * SCENE MANAGER — Version 3 (Production Stability)
  *
- * Creates a massive scrollable container and a single GSAP master timeline
- * synced to scroll position via ScrollTrigger.scrub.
- *
- * Key architectural decisions:
- * 1. The master timeline is pinned to exactly 1 second of duration
- *    using a spacer animation. This ensures scene time positions
- *    (0.15, 0.32, etc.) map directly to scroll percentage.
- * 2. Scenes inject their sub-timelines at fractional time positions
- *    corresponding to their scroll percentage entry points.
- * 3. scrub: 1.8 gives cinematic inertia without being too laggy.
+ * Key improvements:
+ * - invalidateOnRefresh: true — recomputes bounds after image loads / resize
+ * - 100dvh sticky viewport — prevents CLS from mobile toolbar collapse
+ * - Debounced resize + orientationchange → ScrollTrigger.refresh()
+ * - React Strict Mode safe: kills stale triggers before recreating
  */
 export function SceneManager({ children, scrollHeight = '1200vh' }: { children: React.ReactNode, scrollHeight?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,48 +23,62 @@ export function SceneManager({ children, scrollHeight = '1200vh' }: { children: 
     if (!containerRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Create the master timeline with ScrollTrigger scrub
-      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
           start: 'top top',
           end: 'bottom bottom',
-          // On mobile, Lenis is disabled so native scroll drives ScrollTrigger.
-          // Use a tight scrub so cinematic scenes track finger movement closely.
-          scrub: isTouchDevice ? 0.4 : 1.2,
+          scrub: 0.5,
+          invalidateOnRefresh: true,
         },
         defaults: { ease: 'none' },
       });
 
-      // Anchor the timeline to exactly 1.0 duration using a spacer
-      // This maps: position 0.0 = 0% scroll, 1.0 = 100% scroll
-      // Scenes can add their sub-timelines at positions 0.0 - 1.0
-      tl.to({}, { duration: 1.0 }); // Spacer — defines total duration
-
+      tl.to({}, { duration: 1.0 });
       setMasterTimeline(tl);
     }, containerRef);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      setMasterTimeline(null);
+    };
+  }, []);
+
+  // Debounced resize + orientation handler — keeps ScrollTrigger bounds accurate
+  useEffect(() => {
+    let rafId: number;
+    const onResize = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
+    };
+
+    window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('orientationchange', onResize, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
   }, []);
 
   return (
     <SceneContext.Provider value={{ masterTimeline }}>
-      {/* 
-        The massive scroll container. 
-        Height determines the total length of the cinematic experience.
-        All visual scenes are `position: sticky` inside.
-      */}
       <div
         ref={containerRef}
         className="relative w-full bg-charcoal"
         style={{ height: scrollHeight }}
       >
-        {/* Sticky viewport — keeps scenes fixed while scroll drives the timeline */}
+        {/* 100dvh: uses dynamic viewport height — prevents mobile toolbar CLS */}
         <div
-          className="sticky top-0 left-0 w-full h-screen overflow-hidden bg-charcoal"
-          style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
+          className="sticky top-0 left-0 w-full overflow-hidden bg-charcoal"
+          style={{
+            height: '100dvh',
+            perspective: '1200px',
+            transformStyle: 'preserve-3d',
+          }}
         >
           {children}
         </div>
@@ -77,3 +86,4 @@ export function SceneManager({ children, scrollHeight = '1200vh' }: { children: 
     </SceneContext.Provider>
   );
 }
+

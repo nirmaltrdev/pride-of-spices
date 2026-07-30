@@ -229,7 +229,7 @@ export function Scene1_Arrival() {
           ease: 'power3.in',
           duration: 0.13,
           force3D: true,
-        }, 0.01);
+        }, 0);
 
         // Vignette fades
         masterTimeline.to(vignRef.current, {
@@ -326,7 +326,7 @@ export function Scene1_Arrival() {
            and are animated in sequence by the GSAP entry timeline above. === */}
       <div
         ref={titleWrapRef}
-        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto"
+        className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
         style={{
           opacity: 1,
           // Shift content up slightly on notch devices so it doesn't sit behind Dynamic Island
@@ -391,7 +391,7 @@ export function Scene1_Arrival() {
           {/* Animated Scroll Cue */}
           <div 
             ref={scrollCueRef} 
-            className="flex flex-col items-center gap-3 cursor-pointer" 
+            className="flex flex-col items-center gap-3 cursor-pointer pointer-events-auto" 
             style={{
               opacity: 0,
               marginTop: 'clamp(1.75rem, 4vh, 2.75rem)',

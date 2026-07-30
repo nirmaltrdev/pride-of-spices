@@ -76,7 +76,7 @@ export function Scene4_Harvest() {
       masterTimeline.to(handShadowRef.current, { opacity: 0, x: '-15%', duration: 0.04, ease: 'power2.in' }, 0.60);
 
       // === SUN RAYS: 4 sweeps simulating days of drying ===
-      const sweepPositions = [0.60, 0.62, 0.64, 0.66];
+      const sweepPositions = [0.56, 0.58, 0.60, 0.62];
       sweepPositions.forEach((pos, i) => {
         masterTimeline.fromTo(sunRayRef.current,
           { x: '-140%', opacity: 0 },
@@ -89,15 +89,15 @@ export function Scene4_Harvest() {
       masterTimeline.fromTo(textGroupRef.current,
         { opacity: 0, y: 25, filter: 'blur(4px)' },
         { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.04, ease: 'power2.out' },
-        0.60
+        0.57
       );
 
       // === NARRATIVE TEXT 2: Curing ===
-      masterTimeline.to(textGroupRef.current, { opacity: 0, duration: 0.03 }, 0.65);
+      masterTimeline.to(textGroupRef.current, { opacity: 0, duration: 0.03 }, 0.62);
       masterTimeline.fromTo(curingTextRef.current,
         { opacity: 0, y: 25, filter: 'blur(4px)' },
         { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.04, ease: 'power2.out' },
-        0.66
+        0.63
       );
 
       // === SCENE EXIT: Fades out at 69% (overlaps Scene4.5 entry at 0.68) ===

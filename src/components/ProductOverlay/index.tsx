@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { pauseLenis, resumeLenis } from '../../core/lenisInstance';
 import { AssetDefinition } from '../../core/assets/AssetManifest';
@@ -63,36 +64,29 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
       setShowInquiry(false);
       setSubmitted(false);
 
-      ctx = gsap.context(() => {
-        gsap.set(overlayRef.current, { opacity: 0 });
-        gsap.set(contentRef.current, { x: '100%', opacity: 0 });
-        if (imageRef.current) gsap.set(imageRef.current, { scale: 1.12, opacity: 0 });
+      // Guarantees visibility is active by default
+      if (overlayRef.current) gsap.set(overlayRef.current, { opacity: 1 });
+      if (contentRef.current) gsap.set(contentRef.current, { x: '0%', opacity: 1 });
+      if (imageRef.current) gsap.set(imageRef.current, { scale: 1, opacity: 1 });
 
-        const tl = gsap.timeline();
-        tl.to(overlayRef.current, { opacity: 1, duration: 0.55, ease: 'power2.out' })
-          .to(
-            imageRef.current,
-            { scale: 1, opacity: 1, duration: 1.1, ease: 'power3.out' },
-            '-=0.35'
-          )
-          .to(
-            contentRef.current,
-            { x: '0%', opacity: 1, duration: 0.7, ease: 'power2.out' },
-            '-=0.9'
-          );
+      ctx = gsap.context(() => {
+        gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' });
+        gsap.fromTo(contentRef.current, { x: '100%', opacity: 0 }, { x: '0%', opacity: 1, duration: 0.5, ease: 'power2.out' });
+        if (imageRef.current) {
+          gsap.fromTo(imageRef.current, { scale: 1.1, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: 'power3.out' });
+        }
       }, overlayRef);
 
       pauseLenis();
-      setTimeout(() => closeBtnRef.current?.focus(), 720);
+      setTimeout(() => closeBtnRef.current?.focus(), 400);
+
+      return () => {
+        resumeLenis();
+        if (ctx) ctx.revert();
+      };
     } else {
-      resumeLenis();
       setShowInquiry(false);
     }
-
-    return () => {
-      resumeLenis();
-      if (ctx) ctx.revert();
-    };
   }, [product]);
 
   const handleClose = useCallback(() => {
@@ -147,12 +141,12 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
     boxShadow: 'none',
   };
 
-  return (
+  return createPortal(
     <div
       ref={overlayRef}
       className="fixed inset-0 flex pointer-events-auto"
-      /* Raised z-index: above curtain (z-50) AND nav (z-[100]) */
-      style={{ zIndex: 200, background: 'rgba(6,10,6,0.93)' }}
+      /* z-index: 100000 ensures overlay renders ON TOP of CinematicNav and root shell */
+      style={{ zIndex: 100000, background: 'rgba(6,10,6,0.96)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="overlay-product-name"
@@ -176,64 +170,84 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(90deg, transparent 50%, rgba(6,10,6,0.93) 100%), linear-gradient(to top, rgba(6,10,6,0.65) 0%, transparent 40%)',
+              'linear-gradient(90deg, transparent 50%, rgba(6,10,6,0.96) 100%), linear-gradient(to top, rgba(6,10,6,0.65) 0%, transparent 40%)',
           }}
         />
       </div>
 
-      {/* ── Close Button ── */}
-      <button
-        ref={closeBtnRef}
-        onClick={handleClose}
-        className="absolute flex items-center transition-all duration-300 group"
-        style={{
-          top: 'clamp(1rem, 3vh, 1.75rem)',
-          right: 'clamp(1rem, 3vw, 1.75rem)',
-          zIndex: 210,
-          color: 'rgba(253,246,236,0.5)',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          gap: '0.5rem',
-          minHeight: '44px',
-          padding: '0.5rem',
-        }}
-        aria-label="Close product details"
-        onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = 'rgba(212,147,42,0.9)')}
-        onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = 'rgba(253,246,236,0.5)')}
-      >
-        <span
-          className="font-sans uppercase"
-          style={{ fontSize: 'clamp(0.6rem, 1.1vw, 0.72rem)', letterSpacing: '0.24em' }}
-        >
-          Return to Forest
-        </span>
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-          <path
-            d="M1 1l11 11M12 1L1 12"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-        </svg>
-      </button>
-
       {/* ── Content Panel: The Estate Journal ── */}
       <div
         ref={contentRef}
+        data-lenis-prevent="true"
+        onWheel={e => e.stopPropagation()}
+        onTouchMove={e => e.stopPropagation()}
         className="absolute right-0 top-0 bottom-0 w-full md:w-[52%] overflow-y-auto"
         style={{
-          background: 'rgba(8,13,8,0.97)',
-          borderLeft: '1px solid rgba(255,255,255,0.04)',
-          // Enable native touch scroll on iOS inside this panel
+          background: 'rgba(8,13,8,0.98)',
+          borderLeft: '1px solid rgba(255,255,255,0.06)',
           WebkitOverflowScrolling: 'touch',
           touchAction: 'pan-y',
           overscrollBehavior: 'contain',
-          // Account for home indicator on iPhone
           paddingBottom: 'env(safe-area-inset-bottom)',
         }}
-        data-lenis-prevent
       >
+        {/* Sticky Top Navigation Bar */}
+        <div
+          className="sticky top-0 flex items-center justify-between"
+          style={{
+            zIndex: 50,
+            padding: '1.125rem clamp(1.75rem, 4vw, 4rem)',
+            background: 'rgba(8,13,8,0.96)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            paddingTop: 'max(1.125rem, calc(0.875rem + env(safe-area-inset-top, 0px)))',
+          }}
+        >
+          <button
+            ref={closeBtnRef}
+            onClick={handleClose}
+            className="inline-flex items-center gap-2.5 group cursor-pointer transition-colors duration-200"
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '0',
+              color: '#D4932A',
+              outline: 'none',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = '#FDF6EC';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = '#D4932A';
+            }}
+            aria-label="Back to Collection Grid"
+          >
+            <span
+              className="inline-block transition-transform duration-200 ease-out group-hover:-translate-x-1"
+              style={{
+                fontSize: '14px',
+                lineHeight: 1,
+                fontWeight: 500,
+                display: 'inline-block',
+              }}
+              aria-hidden="true"
+            >
+              ←
+            </span>
+            <span
+              className="font-sans uppercase"
+              style={{
+                fontSize: '14px',
+                letterSpacing: '0.22em',
+                fontWeight: 500,
+              }}
+            >
+              Back to Collection Grid
+            </span>
+          </button>
+        </div>
+
         {/* Mobile image strip — visible only on mobile (hidden md:block) */}
         <div
           className="block md:hidden relative"
@@ -259,7 +273,7 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
 
         {!showInquiry ? (
           <div
-            style={{ padding: 'clamp(1.75rem, 4vw, 4rem)', maxWidth: '580px' }}
+            style={{ padding: 'clamp(1.75rem, 4vw, 4rem)', maxWidth: '580px', paddingTop: 'clamp(1.5rem, 3vh, 2.5rem)' }}
           >
             {/* Journal header */}
             <div style={{ marginBottom: 'clamp(1.5rem, 3vh, 2.5rem)' }}>
@@ -488,7 +502,7 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                     padding: '0.75rem 1.5rem',
                   }}
                 >
-                  Return to Forest
+                  ← Back to Collection
                 </button>
               </div>
             ) : (
@@ -661,6 +675,7 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

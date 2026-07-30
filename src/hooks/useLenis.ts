@@ -21,9 +21,9 @@ gsap.registerPlugin(ScrollTrigger);
  * create competing scroll systems and cause the scroll-lock bug.
  *
  * ── CINEMATIC TUNING ──
- * duration: 1.9 — heavy, luxurious inertia like a camera dolly losing momentum
- * easing: quartic ease-out — ultra-smooth deceleration
- * touchMultiplier: 2.5 — responsive on trackpad/touch without overshoot
+ * duration: 1.2 — balanced inertia; responsive without overshooting
+ * easing: exponential ease-out — ultra-smooth deceleration
+ * smoothWheel: true — intercepts wheel events for smooth desktop scroll
  */
 export function useLenis() {
   const lenisRef = useRef<Lenis | null>(null);
@@ -32,19 +32,15 @@ export function useLenis() {
   useEffect(() => {
     if (prefersReducedMotion) return;
 
-    // On touch devices (mobile/tablet), skip Lenis entirely.
-    // Lenis intercepts touchmove events globally which breaks native scroll
-    // inside nested overflow containers (e.g. the Collection scene).
-    // GSAP ScrollTrigger works perfectly with native scroll on mobile.
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouchDevice) return;
+    // Skip Lenis only on small-screen mobile devices.
+    // This avoids disabling Lenis on desktop touchscreen laptops.
+    const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768 && 'ontouchstart' in window;
+    if (isMobileDevice) return;
 
     const lenis = new Lenis({
-      duration: 1.9,
-      // Quartic ease-out: feels like a dolly with inertia gradually losing momentum
-      easing: (t: number) => 1 - Math.pow(1 - t, 4),
+      duration: 1.2,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      touchMultiplier: 2.5,
       wheelMultiplier: 1.0,
       infinite: false,
     });
@@ -70,6 +66,7 @@ export function useLenis() {
 
     return () => {
       gsap.ticker.remove(tickerCallback);
+      lenis.off('scroll', ScrollTrigger.update);
       lenis.destroy();
       lenisRef.current = null;
       // Deregister from singleton — prevents stale instance usage after cleanup

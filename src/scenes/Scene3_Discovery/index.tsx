@@ -91,38 +91,38 @@ export function Scene3_Discovery() {
       masterTimeline.fromTo(textGroupRef.current,
         { opacity: 0, y: 28 },
         { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
-        0.36
+        0.30
       );
 
       // Farmer hands appear — human connection
       masterTimeline.fromTo(farmerRef.current,
         { opacity: 0, filter: 'blur(8px)' },
         { opacity: 0.5, filter: 'blur(0px)', duration: 0.05, ease: 'power2.out' },
-        0.39
+        0.34
       );
 
       // === MONSOON SEQUENCE ===
-      masterTimeline.to(textGroupRef.current, { opacity: 0, duration: 0.03 }, 0.43);
-      masterTimeline.to(farmerRef.current, { opacity: 0, duration: 0.03 }, 0.43);
-      masterTimeline.to(darkOverlayRef.current, { opacity: 0.55, duration: 0.04, ease: 'power1.in' }, 0.44);
-      masterTimeline.to(rainOverlayRef.current, { opacity: 0.65, duration: 0.04, ease: 'power1.in' }, 0.44);
+      masterTimeline.to(textGroupRef.current, { opacity: 0, duration: 0.03 }, 0.41);
+      masterTimeline.to(farmerRef.current, { opacity: 0, duration: 0.03 }, 0.41);
+      masterTimeline.to(darkOverlayRef.current, { opacity: 0.55, duration: 0.04, ease: 'power1.in' }, 0.42);
+      masterTimeline.to(rainOverlayRef.current, { opacity: 0.65, duration: 0.04, ease: 'power1.in' }, 0.42);
 
       // Pepper turns red
       masterTimeline.fromTo(ripePepperRef.current,
         { opacity: 0 },
         { opacity: 1, duration: 0.07, ease: 'power2.inOut' },
-        0.46
+        0.44
       );
 
       // Rain clears
-      masterTimeline.to(rainOverlayRef.current, { opacity: 0, duration: 0.04, ease: 'power1.out' }, 0.51);
-      masterTimeline.to(darkOverlayRef.current, { opacity: 0.2, duration: 0.04, ease: 'power1.out' }, 0.51);
+      masterTimeline.to(rainOverlayRef.current, { opacity: 0, duration: 0.04, ease: 'power1.out' }, 0.49);
+      masterTimeline.to(darkOverlayRef.current, { opacity: 0.2, duration: 0.04, ease: 'power1.out' }, 0.49);
 
       // === NARRATIVE 2: Post-monsoon ===
       masterTimeline.fromTo(lifecycleTextRef.current,
         { opacity: 0, y: 28 },
         { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
-        0.50
+        0.47
       );
 
       // === SCENE EXIT ===

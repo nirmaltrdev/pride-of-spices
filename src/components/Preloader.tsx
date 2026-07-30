@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AssetLoader } from '@/core/assets/AssetLoader';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -49,7 +50,10 @@ export function Preloader({ onComplete }: PreloaderProps) {
         if (!isActive) return;
         setFadeOut(true);
         // Allow CSS transition to complete before removing from DOM
-        setTimeout(onComplete, 750);
+        setTimeout(() => {
+          onComplete();
+          setTimeout(() => ScrollTrigger.refresh(), 50);
+        }, 750);
       }, 450);
     });
 

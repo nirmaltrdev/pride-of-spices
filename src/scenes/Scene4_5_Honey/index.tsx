@@ -37,7 +37,7 @@ export function Scene4_5_Honey() {
 
       if (prefersReducedMotion) {
         masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.68);
-        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03 }, 0.82);
+        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03 }, 0.97);
         return;
       }
 
@@ -46,11 +46,11 @@ export function Scene4_5_Honey() {
 
       // Honey background: parallax + saturation warm-up
       masterTimeline.fromTo(honeyBgRef.current,
-        { scale: 1.18, filter: 'blur(12px) saturate(0.5)', opacity: 0.5, y: '8%' },
-        { scale: 1.0, filter: 'blur(0px) saturate(1.4)', opacity: 1, y: '0%', duration: 0.09, ease: 'power2.out' },
+        { scale: 1.18, filter: 'blur(8px) saturate(0.5)', opacity: 0.5, y: '8%' },
+        { scale: 1.0, filter: 'blur(0px) saturate(1.4)', opacity: 1, y: '0%', duration: 0.06, ease: 'power2.out' },
         0.68
       );
-      masterTimeline.to(honeyBgRef.current, { scale: 1.05, y: '-3%', duration: 0.12, ease: 'none' }, 0.72);
+      masterTimeline.to(honeyBgRef.current, { scale: 1.06, y: '-4%', duration: 0.28, ease: 'none' }, 0.72);
 
       // Warm golden overlay blooms
       masterTimeline.fromTo(warmOverlayRef.current,
@@ -62,7 +62,7 @@ export function Scene4_5_Honey() {
       // Honeycomb pattern drifts
       masterTimeline.fromTo(honeycombRef.current,
         { opacity: 0, y: '8%' },
-        { opacity: 0.22, y: '-5%', duration: 0.12, ease: 'none' },
+        { opacity: 0.22, y: '-5%', duration: 0.28, ease: 'none' },
         0.69
       );
 
@@ -84,25 +84,25 @@ export function Scene4_5_Honey() {
       masterTimeline.fromTo(textGroup1Ref.current,
         { opacity: 0, y: 30, filter: 'blur(4px)' },
         { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.05, ease: 'power2.out' },
-        0.72
+        0.73
       );
 
       // Transition to text 2
-      masterTimeline.to(textGroup1Ref.current, { opacity: 0, y: -15, duration: 0.03, ease: 'power2.in' }, 0.78);
+      masterTimeline.to(textGroup1Ref.current, { opacity: 0, y: -15, duration: 0.03, ease: 'power2.in' }, 0.81);
 
       // === NARRATIVE TEXT 2: The Taste ===
       masterTimeline.fromTo(textGroup2Ref.current,
         { opacity: 0, y: 30, filter: 'blur(4px)' },
         { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.04, ease: 'power2.out' },
-        0.79
+        0.83
       );
 
-      // === SCENE EXIT: starts at 80% (overlaps Scene5 entry at 0.80) ===
-      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.03 }, 0.80);
+      // === SCENE EXIT: extends smoothly to 1.00 so Honey flows directly into Collection entrance ===
+      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.04 }, 0.92);
       masterTimeline.to([warmOverlayRef.current, honeycombRef.current, honeyDripsRef.current, glowRef.current], {
-        opacity: 0, duration: 0.03, stagger: 0.005
-      }, 0.80);
-      masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.04, ease: 'power1.inOut' }, 0.81);
+        opacity: 0, duration: 0.04, stagger: 0.005
+      }, 0.95);
+      masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.05, ease: 'power1.inOut' }, 0.95);
     }, sceneRef);
 
     return () => ctx.revert();
@@ -115,22 +115,22 @@ export function Scene4_5_Honey() {
       style={{ transformStyle: 'preserve-3d' }}
       aria-label="The Wild Forest Honey of the Nilgiri Biosphere"
     >
-      {/* === BASE: Honey photography === */}
+      {/* === BASE: Honey atmospheric background === */}
       <div
         ref={honeyBgRef}
         className="absolute inset-0 origin-center will-change-transform opacity-0"
       >
         <CinematicImage 
-          asset={Assets.forestHoney} 
+          asset={Assets.honeyBg} 
           className="absolute inset-0 w-full h-full"
           style={{ objectPosition: 'center 42%', objectFit: 'cover' }}
         />
       </div>
 
-      {/* === Dark overlay for legibility === */}
+      {/* === Dark overlay for legibility — strengthened for BUG 5 fix === */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'rgba(10,6,2,0.4)' }}
+        style={{ background: 'rgba(10,6,2,0.62)' }}
       />
 
       {/* === HONEYCOMB PATTERN === */}
@@ -189,12 +189,12 @@ export function Scene4_5_Honey() {
         <div
           className="cinematic-card text-center"
           style={{
-            background: 'rgba(12,8,3,0.65)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(201,168,76,0.14)',
+            background: 'rgba(12,8,3,0.82)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(201,168,76,0.18)',
             padding: 'clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.5)'
+            boxShadow: '0 32px 80px rgba(0,0,0,0.65)'
           }}
         >
           <p className="font-sans tracking-[0.34em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
@@ -230,12 +230,12 @@ export function Scene4_5_Honey() {
         <div
           className="cinematic-card text-center"
           style={{
-            background: 'rgba(12,8,3,0.65)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(201,168,76,0.14)',
+            background: 'rgba(12,8,3,0.82)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(201,168,76,0.18)',
             padding: 'clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.5)'
+            boxShadow: '0 32px 80px rgba(0,0,0,0.65)'
           }}
         >
           <p className="font-sans tracking-[0.34em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>

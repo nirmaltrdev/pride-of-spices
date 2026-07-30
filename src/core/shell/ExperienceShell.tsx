@@ -40,7 +40,7 @@ export function ExperienceShell({ children }: { children: React.ReactNode }) {
       <AudioController />
 
       {/* Master Scroll Container */}
-      <SceneManager scrollHeight="1200vh">
+      <SceneManager scrollHeight="900vh">
         <EnvironmentController />
         {children}
       </SceneManager>

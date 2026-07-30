@@ -63,8 +63,8 @@ export function Scene2_Forest() {
       // === BACKGROUND: Cinematic dolly-push into forest ===
       // NOTE: bgScaleRef starts at scale 1.12 but opacity 1 to prevent checkerboard bleed
       masterTimeline.fromTo(bgScaleRef.current,
-        { scale: 1.14, filter: 'blur(8px)', opacity: 1 },
-        { scale: 1.0, filter: 'blur(0px)', opacity: 1, duration: 0.18, ease: 'power2.out', force3D: true },
+        { scale: 1.12, filter: 'blur(6px)', opacity: 1 },
+        { scale: 1.0, filter: 'blur(0px)', opacity: 1, duration: 0.10, ease: 'power2.out', force3D: true },
         0.11
       );
       // Slow continuous push through the forest — parallax speed 1 (slowest)
@@ -124,16 +124,16 @@ export function Scene2_Forest() {
       masterTimeline.fromTo(stanzaRef.current,
         { opacity: 0, y: 30, filter: 'blur(4px)' },
         { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.06, ease: 'power2.out' },
-        0.20
+        0.17
       );
       masterTimeline.to(stanzaRef.current, {
         opacity: 0, y: -20, filter: 'blur(2px)', duration: 0.04, ease: 'power2.in'
-      }, 0.25);
+      }, 0.22);
 
-      // === EXIT: Scene exits at 27% (overlaps Scene3 entry) ===
+      // === EXIT: Scene exits at 24% ===
       masterTimeline.to(sceneRef.current, {
         opacity: 0, duration: 0.04, ease: 'power1.inOut'
-      }, 0.27);
+      }, 0.24);
 
     }, sceneRef);
 
@@ -275,9 +275,13 @@ export function Scene2_Forest() {
         <div
           className="cinematic-card text-center px-8"
           style={{
-            background: 'linear-gradient(to top, rgba(2,10,5,0.88) 0%, rgba(2,10,5,0.65) 60%, transparent 100%)',
+            background: 'rgba(2,10,5,0.84)',
+            backdropFilter: 'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255,255,255,0.07)',
             padding: 'clamp(1.75rem, 4.5vw, 3rem) clamp(1.5rem, 4vw, 4rem)',
-            borderRadius: '0.5rem'
+            borderRadius: '0.5rem',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.65)',
           }}
         >
           <p

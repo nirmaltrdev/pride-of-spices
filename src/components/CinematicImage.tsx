@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AssetDefinition } from '@/core/assets/AssetManifest';
+
+// Module-level debounce: coalesces rapid image onLoad calls (up to 12 images
+// on the page) into a single ScrollTrigger.refresh() to avoid layout thrash.
+let _refreshTimer: ReturnType<typeof setTimeout> | null = null;
+function debouncedRefresh() {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  _refreshTimer = setTimeout(() => {
+    _refreshTimer = null;
+    ScrollTrigger.refresh();
+  }, 120);
+}
 
 interface CinematicImageProps {
   asset: AssetDefinition;
@@ -37,6 +49,9 @@ export function CinematicImage({
 
   const handleLoad = () => {
     setIsLoaded(true);
+    // Recompute ScrollTrigger bounds after image dimensions are known.
+    // Debounced: multiple images loading together coalesce into one refresh.
+    debouncedRefresh();
     if (onLoad) onLoad();
   };
 
