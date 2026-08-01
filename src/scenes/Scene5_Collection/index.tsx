@@ -212,9 +212,9 @@ export function Scene5_Collection() {
         return;
       }
 
-      gsap.set(headerRef.current, { opacity: 0, y: 28, filter: 'blur(5px)' });
-      gsap.set(footerRef.current, { opacity: 0, y: 18 });
-      gsap.set(productItems, { opacity: 0, y: 40, scale: 0.96, filter: 'blur(5px)' });
+      gsap.set(headerRef.current, { opacity: 1, y: 0, filter: 'blur(0px)' });
+      gsap.set(footerRef.current, { opacity: 1, y: 0 });
+      gsap.set(productItems, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' });
 
       // ── Real-time Reveal Timeline ───────────────────────────────────
       const revealTl = gsap.timeline({ paused: true });
@@ -360,13 +360,6 @@ export function Scene5_Collection() {
         }}
       />
 
-      {/* ── ENTRY CURTAIN ── */}
-      <div
-        ref={curtainRef}
-        className="absolute inset-0 z-50 pointer-events-none"
-        style={{ background: 'linear-gradient(to bottom, #030703 0%, #120d07 100%)' }}
-      />
-
       {/* ── SECTION HEADER ── */}
       <div
         ref={headerOuterRef}
@@ -407,16 +400,19 @@ export function Scene5_Collection() {
 
           {/* Subtitle */}
           <p
-            className="font-sans text-cream/50 mx-auto"
+            className="font-sans text-cream/60 mx-auto"
             style={{
               fontSize: 'clamp(0.78rem, 1.5vw, 0.95rem)',
               letterSpacing: '0.06em',
               lineHeight: 1.65,
-              marginTop: '1.5rem',
-              maxWidth: '28rem',
+              marginTop: '1.25rem',
+              maxWidth: '32rem',
             }}
           >
-            Thirteen products. One origin. Centuries of craft.
+            Thirteen products. One origin. Centuries of craft.<br />
+            <span className="text-gold/80 font-medium text-xs tracking-wider uppercase inline-block mt-2">
+              ✦ Click any card to explore origin, tasting notes &amp; reserve allocation
+            </span>
           </p>
 
           {/* Gold rule divider */}
@@ -542,36 +538,38 @@ export function Scene5_Collection() {
                       zIndex: 10,
                       pointerEvents: 'none',
                       transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
-                      transform: isHovered ? 'translateY(0)' : 'translateY(4px)',
+                      transform: isHovered ? 'translateY(0)' : 'translateY(2px)',
                     }}
                   >
                     <h3
                       className="font-serif text-cream leading-tight drop-shadow-md"
                       style={{
                         fontSize: 'clamp(0.95rem, 2.2vw, 1.45rem)',
-                        marginBottom: '0.5rem',
+                        marginBottom: '0.65rem',
                         textWrap: 'balance',
                       }}
                     >
                       {product.name}
                     </h3>
                     <div
-                      className="flex items-center"
+                      className="inline-flex items-center"
                       style={{
-                        gap: '0.5rem',
-                        opacity: isHovered ? 1 : 0,
-                        transition: 'opacity 0.35s ease 0.06s',
+                        gap: '6px',
+                        fontSize: '0.62rem',
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: isHovered ? '#FDF6EC' : 'rgba(212,147,42,0.92)',
+                        background: isHovered ? 'rgba(212,147,42,0.35)' : 'rgba(12,18,12,0.72)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(212,147,42,0.45)',
+                        borderRadius: '9999px',
+                        padding: '0.3rem 0.85rem',
+                        transition: 'all 0.3s ease',
+                        boxShadow: isHovered ? '0 4px 12px rgba(212,147,42,0.3)' : 'none',
                       }}
                     >
-                      <span
-                        className="font-sans text-cream/40 uppercase"
-                        style={{ fontSize: '0.58rem', letterSpacing: '0.18em' }}
-                      >
-                        Explore
-                      </span>
-                      <span style={{ color: 'rgba(212,147,42,0.85)', fontSize: '0.72rem' }}>
-                        →
-                      </span>
+                      <span>Explore Details</span>
+                      <span style={{ transition: 'transform 0.3s ease', transform: isHovered ? 'translateX(3px)' : 'translateX(0)' }}>→</span>
                     </div>
                   </div>
 
@@ -658,9 +656,17 @@ export function Scene5_Collection() {
         </div>
 
         {/* CTA row */}
-        <div className="cta-row" style={{ width: '100%', maxWidth: '600px' }}>
-          <a href="mailto:hello@prideofspices.com" className="btn-gold">
-            Make an Enquiry
+        <div className="cta-row flex flex-wrap justify-center gap-4" style={{ width: '100%', maxWidth: '720px' }}>
+          <a
+            href="https://wa.me/919645401284"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-gold"
+          >
+            WhatsApp Inquiry: +91 96454 01284
+          </a>
+          <a href="tel:+919645401284" className="btn-ghost">
+            Call Us: +91 96454 01284
           </a>
           <a
             href="#"
@@ -670,7 +676,7 @@ export function Scene5_Collection() {
             }}
             className="btn-ghost"
           >
-            Return to Arrival ↑
+            Return to Top ↑
           </a>
         </div>
 

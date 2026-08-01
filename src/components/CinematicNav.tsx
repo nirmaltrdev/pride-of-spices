@@ -24,34 +24,84 @@ const NAV_LINKS: NavLink[] = [
   { label: 'The Forest', pct: 0.13, scene: '02' },
   { label: 'The Harvest', pct: 0.52, scene: '04' },
   { label: 'Wild Honey', pct: 0.70, scene: '4.5' },
-  { label: 'Collection', pct: 0.96, scene: '05' },
+  { label: 'Collection', pct: 0.88, scene: '05' },
 ];
 
 export function CinematicNav() {
   const [visible, setVisible] = useState(false);
   const [scrollPct, setScrollPct] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeScene, setActiveScene] = useState<number>(-1);
   const navRef = useRef<HTMLElement>(null);
   const prevVisibleRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoPlayRafRef = useRef<number | null>(null);
 
   const getActiveScene = useCallback((pct: number): number => {
-    if (pct >= 0.94) return 3; // Scene 5: Collection
+    if (pct >= 0.85) return 3; // Scene 5: Collection
     for (let i = NAV_LINKS.length - 1; i >= 0; i--) {
       if (pct >= NAV_LINKS[i].pct - 0.02) return i;
     }
     return -1;
   }, []);
 
+  const toggleAutoPlay = useCallback(() => {
+    setIsAutoPlaying(prev => !prev);
+  }, []);
+
+  // Smooth Auto-Scroll RAF Loop
+  useEffect(() => {
+    if (!isAutoPlaying) {
+      if (autoPlayRafRef.current) cancelAnimationFrame(autoPlayRafRef.current);
+      return;
+    }
+
+    let lastTime = performance.now();
+    const scrollSpeed = 1.2; // pixels per frame (~70px/sec smooth rate)
+
+    const step = (now: number) => {
+      const delta = Math.min(32, now - lastTime);
+      lastTime = now;
+
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const currentY = window.scrollY;
+
+      if (currentY >= maxScroll - 5) {
+        // Pause at the bottom collection grid
+        setIsAutoPlaying(false);
+        return;
+      }
+
+      window.scrollBy(0, (scrollSpeed * delta) / 16);
+      autoPlayRafRef.current = requestAnimationFrame(step);
+    };
+
+    autoPlayRafRef.current = requestAnimationFrame(step);
+
+    // Pause auto-tour if user manually interacts (wheel or touch)
+    const stopOnUserAction = () => {
+      setIsAutoPlaying(false);
+    };
+
+    window.addEventListener('wheel', stopOnUserAction, { passive: true, once: true });
+    window.addEventListener('touchstart', stopOnUserAction, { passive: true, once: true });
+
+    return () => {
+      if (autoPlayRafRef.current) cancelAnimationFrame(autoPlayRafRef.current);
+      window.removeEventListener('wheel', stopOnUserAction);
+      window.removeEventListener('touchstart', stopOnUserAction);
+    };
+  }, [isAutoPlaying]);
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      // Cap pct to the cinematic scroll range (SceneManager = 900vh, sticky range = 800vh).
+      // Cap pct to the cinematic scroll range (SceneManager = 800vh, sticky range = 700vh).
       // This prevents Collection's extra page height from skewing the nav thresholds.
-      const cinematicMaxScroll = window.innerHeight * 8; // 800vh
+      const cinematicMaxScroll = window.innerHeight * 7; // 700vh
       const pct = cinematicMaxScroll > 0 ? Math.min(1, scrollY / cinematicMaxScroll) : 0;
 
       setScrollPct(maxScroll > 0 ? scrollY / maxScroll : 0); // progress bar still uses full range
@@ -107,7 +157,7 @@ export function CinematicNav() {
   }, [mobileOpen]);
 
   const scrollToPct = useCallback((pct: number) => {
-    if (pct >= 0.95) {
+    if (pct >= 0.85) {
       const collectionEl = document.getElementById('collection');
       if (collectionEl) {
         const top = collectionEl.getBoundingClientRect().top + window.scrollY;
@@ -254,31 +304,125 @@ export function CinematicNav() {
             ))}
           </div>
 
-          {/* Enquire CTA */}
-          <a
-            href="mailto:hello@prideofspices.com"
-            className="hidden md:inline-flex items-center font-sans transition-all duration-300"
-            style={{
-              fontSize: 'clamp(0.62rem, 1.1vw, 0.72rem)',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: '#D4932A',
-              border: '1px solid rgba(212,147,42,0.35)',
-              borderRadius: '2px',
-              padding: '0.5rem 1.25rem',
-              minHeight: '36px',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(212,147,42,0.09)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,147,42,0.7)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(212,147,42,0.35)';
-            }}
-          >
-            Enquire
-          </a>
+          {/* Auto Play Presentation & WhatsApp CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={toggleAutoPlay}
+              className="inline-flex items-center font-sans transition-all duration-300 cursor-pointer"
+              style={{
+                fontSize: 'clamp(0.62rem, 1.1vw, 0.72rem)',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: isAutoPlaying ? '#10B981' : 'rgba(253,246,236,0.7)',
+                background: isAutoPlaying ? 'rgba(16,185,129,0.12)' : 'transparent',
+                border: isAutoPlaying ? '1px solid rgba(16,185,129,0.6)' : '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '2px',
+                padding: '0.5rem 1rem',
+                minHeight: '36px',
+                gap: '6px',
+              }}
+              title={isAutoPlaying ? 'Pause automatic cinematic tour' : 'Start automatic cinematic tour'}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: isAutoPlaying ? '#10B981' : 'rgba(253,246,236,0.4)',
+                  boxShadow: isAutoPlaying ? '0 0 8px #10B981' : 'none',
+                }}
+              />
+              {isAutoPlaying ? 'Auto Tour: ON' : 'Auto Tour'}
+            </button>
+
+            {/* ENQUIRE Button with Luxury Dropdown Menu */}
+            <div className="relative group">
+              <button
+                className="inline-flex items-center font-sans transition-all duration-300 cursor-pointer overflow-hidden relative group/btn"
+                style={{
+                  fontSize: '0.68rem',
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  fontWeight: 500,
+                  color: '#F5E6C8',
+                  background: 'linear-gradient(135deg, rgba(212,147,42,0.18) 0%, rgba(12,18,12,0.65) 100%)',
+                  border: '1px solid rgba(212,147,42,0.5)',
+                  borderRadius: '3px',
+                  padding: '0.55rem 1.35rem',
+                  minHeight: '38px',
+                  gap: '8px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.15)',
+                }}
+              >
+                <span>Enquire</span>
+                <svg
+                  className="w-2.5 h-2.5 transition-transform duration-300 group-hover:rotate-180"
+                  style={{ fill: '#D4932A' }}
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M7 10l5 5 5-5z" />
+                </svg>
+              </button>
+
+              {/* Luxury Dropdown Card */}
+              <div 
+                className="absolute right-0 top-full mt-3 w-72 p-3 rounded-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 ease-out"
+                style={{
+                  background: 'rgba(10, 14, 11, 0.96)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  border: '1px solid rgba(212, 147, 42, 0.35)',
+                  boxShadow: '0 24px 48px rgba(0,0,0,0.85), 0 0 20px rgba(212,147,42,0.12)',
+                }}
+              >
+                <div className="px-3.5 py-2.5 border-b border-gold/15 mb-2">
+                  <p className="font-sans text-[9px] uppercase tracking-[0.28em] text-gold/80 font-medium">
+                    Concierge Contact
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <a
+                    href={`https://wa.me/919645401284?text=${encodeURIComponent("Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/10 transition-all duration-200 group/item"
+                  >
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover/item:scale-110"
+                      style={{ background: 'rgba(37, 211, 102, 0.15)', border: '1px solid rgba(37, 211, 102, 0.35)' }}
+                    >
+                      <svg className="w-4 h-4 fill-[#25D366]" viewBox="0 0 24 24">
+                        <path d="M12.031 2c-5.514 0-9.999 4.486-9.999 10 0 1.763.458 3.483 1.332 5.006l-1.364 4.994 5.111-1.34c1.472.803 3.131 1.24 4.92 1.24 5.514 0 10-4.486 10-10s-4.486-10-10-10zm0 18.273c-1.579 0-3.118-.423-4.453-1.222l-.319-.191-3.037.796.81-2.959-.209-.333c-.878-1.401-1.343-3.027-1.343-4.697 0-4.561 3.711-8.273 8.273-8.273s8.273 3.712 8.273 8.273-3.712 8.273-8.273 8.273zm4.531-6.177c-.249-.125-1.474-.728-1.703-.811-.229-.083-.396-.125-.563.125-.166.249-.645.811-.791.978-.146.166-.292.187-.541.062-.249-.125-1.054-.388-2.007-1.238-.742-.662-1.243-1.479-1.389-1.728-.146-.249-.016-.384.109-.508.113-.112.249-.292.374-.437.125-.146.166-.249.249-.416.083-.166.042-.312-.021-.437s-.563-1.358-.771-1.859c-.202-.489-.408-.423-.563-.431l-.479-.008c-.166 0-.437.062-.666.312-.229.249-.874.854-.874 2.083 0 1.229.895 2.416 1.02 2.583.125.166 1.761 2.689 4.267 3.771.596.257 1.061.411 1.424.526.598.19 1.142.163 1.572.099.48-.071 1.474-.603 1.682-1.186.208-.583.208-1.083.146-1.187-.063-.104-.229-.166-.479-.291z"/>
+                      </svg>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-cream group-hover/item:text-gold transition-colors">WhatsApp Enquiry</span>
+                      <span className="text-[9.5px] text-cream/50 tracking-normal capitalize">Direct message support</span>
+                    </div>
+                  </a>
+
+                  <a
+                    href="tel:+919645401284"
+                    className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/10 transition-all duration-200 group/item"
+                  >
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover/item:scale-110"
+                      style={{ background: 'rgba(212, 147, 42, 0.15)', border: '1px solid rgba(212, 147, 42, 0.35)' }}
+                    >
+                      <svg className="w-4 h-4 fill-gold" viewBox="0 0 24 24">
+                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                      </svg>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-cream group-hover/item:text-gold transition-colors">Call Representative</span>
+                      <span className="text-[9.5px] text-cream/50 tracking-normal capitalize">+91 96454 01284</span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Mobile Hamburger — 44px min touch target */}
           <button
@@ -388,26 +532,78 @@ export function CinematicNav() {
 
           <div style={{ width: '2rem', height: '1px', background: 'rgba(212,147,42,0.3)', marginTop: '0.5rem' }} />
 
-          <a
-            href="mailto:hello@prideofspices.com"
-            className="font-sans uppercase"
-            style={{
-              fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
-              letterSpacing: '0.28em',
-              color: '#D4932A',
-              border: '1px solid rgba(212,147,42,0.4)',
-              borderRadius: '2px',
-              padding: '0.875rem 2.5rem',
-              minHeight: '48px',
-              display: 'flex',
-              alignItems: 'center',
-              opacity: mobileOpen ? 1 : 0,
-              transition: 'opacity 0.4s ease 280ms',
-            }}
-            onClick={() => setMobileOpen(false)}
-          >
-            Make an Enquiry
-          </a>
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <button
+              onClick={() => {
+                setMobileOpen(false);
+                setIsAutoPlaying(true);
+              }}
+              className="font-sans uppercase"
+              style={{
+                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
+                letterSpacing: '0.24em',
+                color: isAutoPlaying ? '#10B981' : '#FDF6EC',
+                border: isAutoPlaying ? '1px solid rgba(16,185,129,0.6)' : '1px solid rgba(255,255,255,0.25)',
+                background: isAutoPlaying ? 'rgba(16,185,129,0.12)' : 'transparent',
+                borderRadius: '2px',
+                padding: '0.875rem 2rem',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: mobileOpen ? 1 : 0,
+                transition: 'opacity 0.4s ease 240ms',
+                cursor: 'pointer',
+              }}
+            >
+              {isAutoPlaying ? 'Pause Auto Tour' : 'Start Auto Tour'}
+            </button>
+            <a
+              href={`https://wa.me/919645401284?text=${encodeURIComponent("Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-sans uppercase"
+              style={{
+                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
+                letterSpacing: '0.24em',
+                color: '#D4932A',
+                border: '1px solid rgba(212,147,42,0.6)',
+                background: 'rgba(212,147,42,0.1)',
+                borderRadius: '2px',
+                padding: '0.875rem 2rem',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: mobileOpen ? 1 : 0,
+                transition: 'opacity 0.4s ease 280ms',
+              }}
+              onClick={() => setMobileOpen(false)}
+            >
+              WhatsApp: +91 96454 01284
+            </a>
+            <a
+              href="tel:+919645401284"
+              className="font-sans uppercase"
+              style={{
+                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
+                letterSpacing: '0.24em',
+                color: '#FDF6EC',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '2px',
+                padding: '0.875rem 2rem',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: mobileOpen ? 1 : 0,
+                transition: 'opacity 0.4s ease 320ms',
+              }}
+              onClick={() => setMobileOpen(false)}
+            >
+              Call: +91 96454 01284
+            </a>
+          </div>
         </div>
 
         {/* Close button */}

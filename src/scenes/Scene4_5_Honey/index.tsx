@@ -88,21 +88,20 @@ export function Scene4_5_Honey() {
       );
 
       // Transition to text 2
-      masterTimeline.to(textGroup1Ref.current, { opacity: 0, y: -15, duration: 0.03, ease: 'power2.in' }, 0.81);
+      masterTimeline.to(textGroup1Ref.current, { opacity: 0, y: -15, duration: 0.03, ease: 'power2.in' }, 0.80);
 
       // === NARRATIVE TEXT 2: The Taste ===
       masterTimeline.fromTo(textGroup2Ref.current,
         { opacity: 0, y: 30, filter: 'blur(4px)' },
         { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.04, ease: 'power2.out' },
-        0.83
+        0.81
       );
 
-      // === SCENE EXIT: extends smoothly to 1.00 so Honey flows directly into Collection entrance ===
-      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.04 }, 0.92);
+      // === SCENE EXIT: text & overlays fade out cleanly at 0.88, background stays visible so Collection covers it smoothly ===
+      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.04 }, 0.88);
       masterTimeline.to([warmOverlayRef.current, honeycombRef.current, honeyDripsRef.current, glowRef.current], {
         opacity: 0, duration: 0.04, stagger: 0.005
-      }, 0.95);
-      masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.05, ease: 'power1.inOut' }, 0.95);
+      }, 0.89);
     }, sceneRef);
 
     return () => ctx.revert();

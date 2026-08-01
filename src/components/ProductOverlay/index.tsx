@@ -438,13 +438,31 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                 >
                   Available in bulk quantities for exporters, wholesalers, and premium retailers.
                 </p>
-                <button
-                  onClick={() => setShowInquiry(true)}
-                  className="btn-gold w-full"
-                  style={{ justifyContent: 'center' }}
-                >
-                  Request This Harvest
-                </button>
+                <div className="flex flex-col gap-2.5">
+                  <a
+                    href={`https://wa.me/919645401284?text=${encodeURIComponent(`Hello, I am interested in inquiring about ${product.name} from Pride of Spices.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-gold w-full"
+                    style={{ justifyContent: 'center', textAlign: 'center' }}
+                  >
+                    WhatsApp Inquiry for {product.name}
+                  </a>
+                  <a
+                    href="tel:+919645401284"
+                    className="btn-ghost w-full"
+                    style={{ justifyContent: 'center', textAlign: 'center' }}
+                  >
+                    Call: +91 96454 01284
+                  </a>
+                  <button
+                    onClick={() => setShowInquiry(true)}
+                    className="btn-ghost w-full"
+                    style={{ justifyContent: 'center', fontSize: '0.7rem', opacity: 0.7 }}
+                  >
+                    Or fill out web form
+                  </button>
+                </div>
               </div>
             </div>
           </div>

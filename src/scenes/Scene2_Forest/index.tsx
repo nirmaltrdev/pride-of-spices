@@ -130,10 +130,10 @@ export function Scene2_Forest() {
         opacity: 0, y: -20, filter: 'blur(2px)', duration: 0.04, ease: 'power2.in'
       }, 0.22);
 
-      // === EXIT: Scene exits at 24% ===
+      // === EXIT: Scene exits cleanly between 0.26 and 0.29 (overlapping Scene 3 Discovery entry at 0.26) ===
       masterTimeline.to(sceneRef.current, {
         opacity: 0, duration: 0.04, ease: 'power1.inOut'
-      }, 0.24);
+      }, 0.26);
 
     }, sceneRef);
 
@@ -187,47 +187,25 @@ export function Scene2_Forest() {
         }}
       />
 
-      {/* === LAYER: Canopy silhouette — frames the top of the scene.
-           translateZ(-60px) adds Z-depth using parent perspective:1200px,
-           making it read as further away than the mid-ground vegetation.
-           This converts the flat 2D slide into a 3D camera push-through. */}
+      {/* === LAYER: Organic top foliage shadow framing === */}
       <div
         ref={canopyRef}
-        className="absolute inset-x-0 top-0 will-change-transform origin-top"
+        className="absolute inset-x-0 top-0 h-1/2 pointer-events-none will-change-transform"
         style={{
-          height: '75%',
+          background: 'linear-gradient(to bottom, rgba(2,10,5,0.78) 0%, rgba(2,10,5,0.3) 50%, transparent 100%)',
           opacity: 0,
-          transform: 'translateZ(-60px)',
-          /* contrast(1.1) added for richer, more cinematic silhouette */
-          filter: 'brightness(0.55) contrast(1.1) hue-rotate(-10deg)',
         }}
-      >
-        <CinematicImage 
-          asset={Assets.forestCanopy} 
-          className="absolute inset-0 w-full h-full"
-          style={{ objectPosition: 'center top', objectFit: 'cover' }}
-        />
-      </div>
+      />
 
-      {/* === LAYER: Mid vegetation — frames left & right edges.
-           translateZ(-30px) gives Z-depth less than canopy (-60px),
-           so it sits between background (0px) and canopy (-60px),
-           creating a genuine three-layer parallax depth stack. */}
+      {/* === LAYER: Side framing depth === */}
       <div
         ref={midVegRef}
-        className="absolute inset-0 will-change-transform origin-center"
+        className="absolute inset-0 pointer-events-none will-change-transform"
         style={{
+          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(2,10,5,0.7) 100%)',
           opacity: 0,
-          transform: 'translateZ(-30px)',
-          filter: 'brightness(0.45) contrast(1.08) hue-rotate(-15deg)',
         }}
-      >
-        <CinematicImage 
-          asset={Assets.midGroundVegetation} 
-          className="absolute inset-0 w-full h-full"
-          style={{ objectPosition: 'center bottom', objectFit: 'cover' }}
-        />
-      </div>
+      />
 
       {/* === VOLUMETRIC LIGHT RAY 1: Golden sunrise shafts from top-right === */}
       <div

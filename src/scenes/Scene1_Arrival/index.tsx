@@ -183,67 +183,47 @@ export function Scene1_Arrival() {
 
     const ctx = gsap.context(() => {
       if (!prefersReducedMotion) {
+        // Scene container opacity tied to 0-13% range
+        masterTimeline.fromTo(sceneRef.current,
+          { opacity: 1 },
+          { opacity: 0, duration: 0.04, ease: 'power1.inOut' },
+          0.11
+        );
+
+        // Title wrapper rises and fades between 0 and 12% scroll
+        masterTimeline.fromTo(titleWrapRef.current,
+          { opacity: 1, y: 0, filter: 'blur(0px)' },
+          { y: -80, opacity: 0, filter: 'blur(4px)', duration: 0.12, ease: 'power2.in' },
+          0
+        );
+
         // Background dollies forward and blurs during 0-13% of scroll
-        masterTimeline.to(bgRef.current, {
-          scale: 1.3,
-          filter: 'blur(6px)',
-          ease: 'power2.in',
-          duration: 0.14,
-          force3D: true,
-          willChange: 'transform',
-        }, 0);
+        masterTimeline.fromTo(bgRef.current,
+          { scale: 1.0, filter: 'blur(0px)' },
+          { scale: 1.25, filter: 'blur(6px)', duration: 0.13, ease: 'power2.in' },
+          0
+        );
 
-        // Mid gradient fades — 0-11%
-        masterTimeline.to(midRef.current, {
-          opacity: 0,
-          ease: 'power1.inOut',
-          duration: 0.11,
-        }, 0);
+        // Mid gradient & mist clear smoothly from 0-11%
+        masterTimeline.fromTo([midRef.current, mistRef.current, vignRef.current],
+          { opacity: 1 },
+          { opacity: 0, duration: 0.11, ease: 'power1.inOut' },
+          0
+        );
 
-        // Mist clears — 0-11%
-        masterTimeline.to(mistRef.current, {
-          opacity: 0,
-          ease: 'power1.inOut',
-          duration: 0.11,
-        }, 0);
+        // Light rays fade from 0-10%
+        masterTimeline.fromTo(lightRayRef.current,
+          { opacity: 0.4 },
+          { opacity: 0, duration: 0.10, ease: 'power1.inOut' },
+          0
+        );
 
-        // Light rays fade — 0-10%
-        masterTimeline.to(lightRayRef.current, {
-          opacity: 0,
-          ease: 'power1.inOut',
-          duration: 0.10,
-        }, 0);
-
-        // Scroll cue fades immediately
-        masterTimeline.to(scrollCueRef.current, {
-          opacity: 0,
-          ease: 'power1.in',
-          duration: 0.04,
-        }, 0);
-
-        // Title rises and fades with blur — premium exit
-        masterTimeline.to(titleWrapRef.current, {
-          y: -90,
-          opacity: 0,
-          filter: 'blur(4px)',
-          ease: 'power3.in',
-          duration: 0.13,
-          force3D: true,
-        }, 0);
-
-        // Vignette fades
-        masterTimeline.to(vignRef.current, {
-          opacity: 0,
-          ease: 'power2.inOut',
-          duration: 0.11,
-        }, 0);
-
-        // Scene fully fades — at 13% (overlap: Scene2 already entering at 11%)
-        masterTimeline.to(sceneRef.current, {
-          opacity: 0,
-          ease: 'power1.inOut',
-          duration: 0.04,
-        }, 0.13);
+        // Scroll cue fades immediately (0-0.04)
+        masterTimeline.fromTo(scrollCueRef.current,
+          { opacity: 1 },
+          { opacity: 0, duration: 0.04, ease: 'power1.in' },
+          0
+        );
       } else {
         masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.15 }, 0);
       }
