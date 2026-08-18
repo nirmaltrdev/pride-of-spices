@@ -45,19 +45,19 @@ export function Scene2_Forest() {
 
     const ctx = gsap.context(() => {
       // Initialize hidden — GSAP will reveal at the correct scroll position
-      gsap.set(sceneRef.current, { opacity: 0 });
+      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' });
 
       if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.04 }, 0.11);
-        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03 }, 0.28);
+        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.04 }, 0.11);
+        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.03 }, 0.28);
         return;
       }
 
-      // === ENTRY: Scene crossfades in at 11% scroll (overlaps Scene1 exit) ===
+      // === ENTRY: Scene crossfades in at 10% scroll — 0.08 duration ensures full overlap with Scene1 ===
       masterTimeline.fromTo(sceneRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.05, ease: 'power2.inOut' },
-        0.11
+        { opacity: 0, pointerEvents: 'none', visibility: 'hidden' },
+        { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.08, ease: 'power2.inOut' },
+        0.10
       );
 
       // === BACKGROUND: Cinematic dolly-push into forest ===
@@ -130,10 +130,10 @@ export function Scene2_Forest() {
         opacity: 0, y: -20, filter: 'blur(2px)', duration: 0.04, ease: 'power2.in'
       }, 0.22);
 
-      // === EXIT: Scene exits cleanly between 0.26 and 0.29 (overlapping Scene 3 Discovery entry at 0.26) ===
+      // === EXIT: Scene exits cleanly starting at 0.24 with 0.08 duration (overlapping Scene3 entry at 0.26) ===
       masterTimeline.to(sceneRef.current, {
-        opacity: 0, duration: 0.04, ease: 'power1.inOut'
-      }, 0.26);
+        opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut'
+      }, 0.24);
 
     }, sceneRef);
 

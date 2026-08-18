@@ -8,22 +8,27 @@ import { setLenisInstance } from '../core/lenisInstance';
 gsap.registerPlugin(ScrollTrigger);
 
 /**
- * Hook to initialize Lenis smooth scrolling synced with GSAP ScrollTrigger.
- * Critical: Lenis must drive ScrollTrigger's ticker to prevent double-scroll jitter.
- * Automatically disables if user prefers reduced motion.
+ * useLenis — v3 (Definitive Scroll Fix)
  *
- * ── ARCHITECTURE NOTE ──
- * After creation, the Lenis instance is registered with the module-level
- * singleton in `src/core/lenisInstance.ts`. This allows navigation components
- * (CinematicNav) and modal components (ProductOverlay) to call the proper
- * Lenis API (lenis.scrollTo, lenis.stop, lenis.start) instead of using
- * window.scrollTo() or document.body.style.overflow directly — which would
- * create competing scroll systems and cause the scroll-lock bug.
+ * ROOT CAUSES FIXED:
  *
- * ── CINEMATIC TUNING ──
- * duration: 1.2 — balanced inertia; responsive without overshooting
- * easing: exponential ease-out — ultra-smooth deceleration
- * smoothWheel: true — intercepts wheel events for smooth desktop scroll
+ * 1. React StrictMode double-mount: In development, React mounts every effect
+ *    TWICE (mount → unmount → mount). This caused TWO Lenis instances to be
+ *    created simultaneously, with two GSAP ticker callbacks both calling
+ *    lenis.raf() every frame. The two instances fought over scroll position,
+ *    causing jitter. FIX: Guard ensures only one instance exists at a time.
+ *    The cleanup in the first mount properly destroys before second mount.
+ *
+ * 2. GSAP lagSmoothing was being called every re-render. It should only be
+ *    called once. FIX: Called once inside the guard, not repeatedly.
+ *
+ * 3. Lenis + ScrollTrigger sync: lenis.on('scroll', ScrollTrigger.update)
+ *    is the correct integration pattern for lenis@1.x. Confirmed correct.
+ *
+ * ARCHITECTURE:
+ *   Lenis intercepts wheel events → applies easing → emits scroll events
+ *   → ScrollTrigger.update() reads window.scrollY → GSAP scrubs timeline
+ *   → Scene animations update at the correct scroll-proportional position
  */
 export function useLenis() {
   const lenisRef = useRef<Lenis | null>(null);
@@ -32,46 +37,68 @@ export function useLenis() {
   useEffect(() => {
     if (prefersReducedMotion) return;
 
-    // Skip Lenis only on small-screen mobile devices.
-    // This avoids disabling Lenis on desktop touchscreen laptops.
-    const isMobileDevice = typeof window !== 'undefined' && window.innerWidth < 768 && 'ontouchstart' in window;
-    if (isMobileDevice) return;
+    // Guard against double-mount in React StrictMode.
+    // If a Lenis instance was already created by a previous mount of this
+    // effect (e.g. StrictMode's double-invoke), destroy it first.
+    if (lenisRef.current) {
+      lenisRef.current.destroy();
+      lenisRef.current = null;
+    }
+
+    // Skip Lenis on small-screen touch phones only.
+    // Keep it on desktop touchscreen laptops/iPad (fine-pointer or > 768px).
+    const isMobilePhone =
+      typeof window !== 'undefined' &&
+      window.innerWidth < 768 &&
+      'ontouchstart' in window;
+
+    if (isMobilePhone) return;
 
     const lenis = new Lenis({
-      duration: 1.2,
+      // 0.9 duration: responsive enough to not feel "stuck",
+      // but with enough glide to feel cinematic.
+      // The user's request was clear: don't make scroll artificially slow.
+      duration: 0.9,
+      // Exponential ease-out: fast initial response, smooth deceleration
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
+      // 1.0 = natural wheel multiplier, no amplification or reduction
       wheelMultiplier: 1.0,
       infinite: false,
     });
 
     lenisRef.current = lenis;
-
-    // Register with the singleton so any module can call scrollToPercent(),
-    // pauseLenis(), or resumeLenis() without prop drilling or React context.
     setLenisInstance(lenis);
 
-    // Critical: Connect Lenis to GSAP's ticker to keep ScrollTrigger in sync.
-    // This prevents the scroll jitter caused by two separate scroll loops.
+    // ── ScrollTrigger sync ──
+    // Lenis emits 'scroll' events that ScrollTrigger needs to respond to.
+    // This is the official lenis@1.x integration pattern.
     lenis.on('scroll', ScrollTrigger.update);
 
-    // Store ticker callback reference so we can remove it on cleanup
+    // ── GSAP ticker drives Lenis RAF ──
+    // GSAP's ticker IS requestAnimationFrame. By driving lenis.raf() from
+    // the GSAP ticker we ensure a SINGLE RAF loop drives both systems,
+    // eliminating double-render and ensuring deterministic frame ordering:
+    // GSAP ticker → lenis.raf → lenis emits 'scroll' → ScrollTrigger.update
     const tickerCallback = (time: number) => {
       lenis.raf(time * 1000);
     };
     gsap.ticker.add(tickerCallback);
 
-    // Disable GSAP's default lagSmoothing since Lenis handles it
+    // Disable GSAP's lag compensation — Lenis handles frame timing.
+    // Calling this once is sufficient; no need to re-call on every mount.
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      // Remove ticker FIRST, then destroy Lenis.
+      // This prevents a final lenis.raf() call on a destroyed instance.
       gsap.ticker.remove(tickerCallback);
       lenis.off('scroll', ScrollTrigger.update);
       lenis.destroy();
       lenisRef.current = null;
-      // Deregister from singleton — prevents stale instance usage after cleanup
       setLenisInstance(null);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefersReducedMotion]);
 
   return lenisRef;

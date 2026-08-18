@@ -38,16 +38,16 @@ export function Scene3_Discovery() {
 
     const ctx = gsap.context(() => {
       // Initialize hidden — GSAP will reveal at the correct scroll position
-      gsap.set(sceneRef.current, { opacity: 0 });
+      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' });
 
       if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.26);
-        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03 }, 0.54);
+        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.03 }, 0.26);
+        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.03 }, 0.54);
         return;
       }
 
-      // === ENTRY at 26% scroll (overlaps Scene2 exit at 0.27) ===
-      masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: 'power2.inOut' }, 0.26);
+      // === ENTRY at 24% scroll (overlaps Scene2 exit which runs 0.24–0.32) ===
+      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.08, ease: 'power2.inOut' }, 0.24);
 
       // Wide plantation background — starts blurry (focus rack)
       masterTimeline.fromTo(bgBaseRef.current,
@@ -125,9 +125,9 @@ export function Scene3_Discovery() {
         0.47
       );
 
-      // === SCENE EXIT ===
-      masterTimeline.to(lifecycleTextRef.current, { opacity: 0, duration: 0.03 }, 0.54);
-      masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03, ease: 'power1.inOut' }, 0.55);
+      // === SCENE EXIT: starts at 0.52, runs 0.08 — overlaps Scene4 entry at 0.52 ===
+      masterTimeline.to(lifecycleTextRef.current, { opacity: 0, duration: 0.04 }, 0.52);
+      masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut' }, 0.52);
     }, sceneRef);
 
     return () => ctx.revert();

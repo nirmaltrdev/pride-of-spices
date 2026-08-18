@@ -33,16 +33,16 @@ export function Scene4_5_Honey() {
 
     const ctx = gsap.context(() => {
       // Initialize hidden — GSAP will reveal at the correct scroll position
-      gsap.set(sceneRef.current, { opacity: 0 });
+      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' });
 
       if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.68);
-        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03 }, 0.97);
+        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.03 }, 0.68);
+        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.03 }, 0.97);
         return;
       }
 
-      // === ENTRY at 68% scroll (overlaps Scene4 exit at 0.69) ===
-      masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: 'power2.inOut' }, 0.68);
+      // === ENTRY at 65% scroll (overlaps Scene4 exit which runs 0.67–0.75) ===
+      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.08, ease: 'power2.inOut' }, 0.65);
 
       // Honey background: parallax + saturation warm-up
       masterTimeline.fromTo(honeyBgRef.current,

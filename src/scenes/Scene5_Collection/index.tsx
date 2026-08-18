@@ -141,14 +141,14 @@ const PRODUCTS: ProductData[] = [
     gallery: [],
   },
   {
-    id: 'spice-blends',
-    name: 'Traditional Spice Blends',
-    origin: 'Ancestral Recipes, Wayanad',
+    id: 'crushed-pepper',
+    name: 'Crushed Pepper',
+    origin: 'Ancestral Homesteads, Wayanad',
     harvestStory:
-      'Generational family recipes combining small-batch roasted whole spices ground fresh to order.',
+      'Coarsely cracked heritage whole black peppercorns prepared in small batches to preserve sharp aroma and intense heat.',
     craftsmanship:
-      'Hand-roasted over coconut shell coals and granite stone ground for maximum oil retention.',
-    aroma: 'Complex, deep, and harmonious with layered warmth and aromatic spice top notes.',
+      'Traditional granite-milled cracked peppercorns that release fresh volatile piperine oils instantly upon opening.',
+    aroma: 'Sharp, robust, fiercely aromatic with bold rustic pungency and lingering woody warmth.',
     image: Assets.spiceBlends,
     gallery: [],
   },
@@ -296,7 +296,7 @@ export function Scene5_Collection() {
             duration: 0.7,
             ease: 'power2.inOut',
             onStart: () => {
-              gsap.delayedCall(0.28, () => revealTlRef.current?.play());
+              revealTlRef.current?.play();
             },
           });
         }
@@ -364,14 +364,32 @@ export function Scene5_Collection() {
       <div
         ref={headerOuterRef}
         style={{
-          paddingTop: 'clamp(12vh, 22vh, 38vh)',
-          paddingBottom: 'clamp(4rem, 8vh, 7rem)',
+          paddingTop: 'clamp(5rem, 12vh, 10rem)',
+          paddingBottom: 'clamp(2.5rem, 5vh, 4rem)',
           paddingLeft: 'clamp(1.5rem, 6vw, 6rem)',
           paddingRight: 'clamp(1.5rem, 6vw, 6rem)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
           overflow: 'hidden',
+          width: '100%',
         }}
       >
-        <div ref={headerRef} className="will-change-transform text-center">
+        <div
+          ref={headerRef}
+          className="will-change-transform"
+          style={{
+            maxWidth: '48rem',
+            width: '100%',
+            margin: '0 auto',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           {/* Eyebrow */}
           <p
             className="font-sans uppercase"
@@ -380,6 +398,7 @@ export function Scene5_Collection() {
               letterSpacing: '0.32em',
               color: 'rgba(212,147,42,0.85)',
               marginBottom: '1.25rem',
+              textAlign: 'center',
             }}
           >
             From the Heart of Wayanad
@@ -390,8 +409,9 @@ export function Scene5_Collection() {
             className="font-serif text-cream"
             style={{
               fontSize: 'clamp(2.8rem, 7vw, 6rem)',
-              lineHeight: 0.95,
+              lineHeight: 1.02,
               letterSpacing: '-0.015em',
+              textAlign: 'center',
               textWrap: 'balance',
             }}
           >
@@ -400,20 +420,32 @@ export function Scene5_Collection() {
 
           {/* Subtitle */}
           <p
-            className="font-sans text-cream/60 mx-auto"
+            className="font-sans text-cream/60"
             style={{
               fontSize: 'clamp(0.78rem, 1.5vw, 0.95rem)',
               letterSpacing: '0.06em',
               lineHeight: 1.65,
               marginTop: '1.25rem',
-              maxWidth: '32rem',
+              maxWidth: '36rem',
+              textAlign: 'center',
+              marginLeft: 'auto',
+              marginRight: 'auto',
             }}
           >
-            Thirteen products. One origin. Centuries of craft.<br />
-            <span className="text-gold/80 font-medium text-xs tracking-wider uppercase inline-block mt-2">
-              ✦ Click any card to explore origin, tasting notes &amp; reserve allocation
-            </span>
+            Thirteen products. One origin. Centuries of craft.
           </p>
+
+          <span
+            className="font-medium text-xs tracking-wider uppercase inline-block"
+            style={{
+              color: 'rgba(212,147,42,0.85)',
+              marginTop: '0.75rem',
+              textAlign: 'center',
+              letterSpacing: '0.14em',
+            }}
+          >
+            ✦ Click any card to explore origin, tasting notes &amp; reserve allocation
+          </span>
 
           {/* Gold rule divider */}
           <div
@@ -423,7 +455,7 @@ export function Scene5_Collection() {
               height: '1px',
               background:
                 'linear-gradient(90deg, transparent, rgba(212,147,42,0.55), transparent)',
-              margin: '2.5rem auto 0',
+              margin: '2rem auto 0',
             }}
           />
         </div>
@@ -599,18 +631,45 @@ export function Scene5_Collection() {
       {/* ── COLLECTION FOOTER ── */}
       <div
         ref={footerRef}
-        className="flex flex-col items-center justify-center"
+        className="flex flex-col items-center justify-center text-center"
         style={{
           borderTop: '1px solid rgba(255,255,255,0.06)',
           padding: 'clamp(3.5rem, 7vh, 6rem) clamp(1.5rem, 6vw, 4rem)',
-          gap: 'clamp(2rem, 4vh, 3.5rem)',
+          gap: 'clamp(2rem, 4vh, 3rem)',
         }}
       >
+        {/* Prominent Delivery Tagline */}
+        <div className="text-center max-w-2xl mx-auto">
+          <p
+            className="eyebrow"
+            style={{ marginBottom: '0.75rem', color: '#D4932A', letterSpacing: '0.35em' }}
+          >
+            Direct From The Highlands
+          </p>
+          <h3
+            className="font-serif text-cream"
+            style={{
+              fontSize: 'clamp(1.6rem, 3.8vw, 2.8rem)',
+              letterSpacing: '-0.015em',
+              lineHeight: 1.15,
+              textWrap: 'balance',
+            }}
+          >
+            Natural Wayanadan Spices at Your Doorstep
+          </h3>
+          <p
+            className="font-sans text-cream/55 mt-3"
+            style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)', letterSpacing: '0.04em' }}
+          >
+            Freshly harvested, traditional grade spices &amp; pure forest honey delivered directly to your home.
+          </p>
+        </div>
+
         {/* Closing editorial quote */}
         <p
           className="font-serif text-cream/45 italic text-center mx-auto"
           style={{
-            fontSize: 'clamp(1rem, 2.2vw, 1.45rem)',
+            fontSize: 'clamp(0.95rem, 2vw, 1.35rem)',
             lineHeight: 1.65,
             maxWidth: '38rem',
             textWrap: 'balance',
@@ -630,7 +689,7 @@ export function Scene5_Collection() {
         >
           {[
             { num: '13', label: 'Heritage Products' },
-            { num: '800m+', label: 'Elevation' },
+            { num: '1000m+', label: 'Elevation' },
             { num: '3rd Gen', label: 'Farmers' },
             { num: 'Raw', label: 'Unprocessed' },
           ].map(stat => (
@@ -655,26 +714,35 @@ export function Scene5_Collection() {
           ))}
         </div>
 
-        {/* CTA row */}
-        <div className="cta-row flex flex-wrap justify-center gap-4" style={{ width: '100%', maxWidth: '720px' }}>
-          <a
-            href="https://wa.me/919645401284"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-gold"
-          >
-            WhatsApp Inquiry: +91 96454 01284
-          </a>
-          <a href="tel:+919645401284" className="btn-ghost">
-            Call Us: +91 96454 01284
-          </a>
+        {/* Contact & Ordering CTAs */}
+        <div className="flex flex-col items-center gap-3 w-full" style={{ maxWidth: '880px' }}>
+          <div className="cta-row flex flex-wrap justify-center gap-3.5 w-full">
+            <a
+              href="mailto:theprideofspices12@gmail.com"
+              className="btn-gold"
+              style={{ textTransform: 'none', letterSpacing: '0.08em' }}
+            >
+              Gmail: theprideofspices12@gmail.com
+            </a>
+            <a
+              href="https://wa.me/919645401284"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ghost"
+            >
+              WhatsApp: +91 96454 01284
+            </a>
+            <a href="tel:+919645401284" className="btn-ghost">
+              Call: +91 96454 01284
+            </a>
+          </div>
           <a
             href="#"
             onClick={e => {
               e.preventDefault();
               scrollToPercent(0);
             }}
-            className="btn-ghost"
+            className="font-sans text-cream/40 hover:text-gold text-xs tracking-widest uppercase transition-colors mt-2"
           >
             Return to Top ↑
           </a>
@@ -689,7 +757,7 @@ export function Scene5_Collection() {
             paddingBottom: 'max(0px, env(safe-area-inset-bottom))',
           }}
         >
-          © {new Date().getFullYear()} Pride of Spices · Wayanad, Kerala, India
+          © {new Date().getFullYear()} Pride of Spices · Wayanad, Kerala, India · theprideofspices12@gmail.com
         </p>
       </div>
 

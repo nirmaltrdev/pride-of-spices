@@ -49,10 +49,11 @@ export function Preloader({ onComplete }: PreloaderProps) {
       setTimeout(() => {
         if (!isActive) return;
         setFadeOut(true);
-        // Allow CSS transition to complete before removing from DOM
+        // Wait for CSS fade-out (750ms) + Lenis initialization buffer (150ms)
+        // before refreshing ScrollTrigger bounds. Too early causes wrong scroll heights.
         setTimeout(() => {
           onComplete();
-          setTimeout(() => ScrollTrigger.refresh(), 50);
+          setTimeout(() => ScrollTrigger.refresh(), 200);
         }, 750);
       }, 450);
     });

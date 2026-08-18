@@ -75,26 +75,31 @@ export function scrollToPercent(pct: number, immediate = false): void {
 /**
  * Pause Lenis smooth scrolling (e.g. when an overlay/modal is open).
  *
- * This REPLACES `document.body.style.overflow = 'hidden'`.
- * Lenis's stop() adds the `lenis-stopped` CSS class to <html>, which
- * applies `overflow: hidden` via the design-system CSS — keeping the
- * scroll engine consistent.
+ * Uses ONLY lenis.stop() which adds the `.lenis-stopped` CSS class to <html>.
+ * The `.lenis-stopped { overflow: hidden }` rule in index.css handles the
+ * visual scroll lock — no direct DOM style manipulation needed.
+ *
+ * IMPORTANT: Do NOT call document.body.style.overflow = 'hidden' here.
+ * That bypasses Lenis and causes the scroll-lock bug where the page remains
+ * stuck even after the modal is closed.
  */
 export function pauseLenis(): void {
   if (_lenis) {
     _lenis.stop();
   }
-  document.body.style.overflow = 'hidden';
 }
 
 /**
  * Resume Lenis smooth scrolling (e.g. when an overlay/modal is closed).
- *
- * This REPLACES `document.body.style.overflow = ''`.
  */
 export function resumeLenis(): void {
   if (_lenis) {
     _lenis.start();
   }
-  document.body.style.overflow = '';
+  // Ensure body overflow is never left in a stuck state
+  // (defensive cleanup only — not the primary lock mechanism)
+  if (document.body.style.overflow === 'hidden') {
+    document.body.style.overflow = '';
+  }
 }
+

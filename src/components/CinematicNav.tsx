@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { scrollToPercent, pauseLenis, resumeLenis } from '../core/lenisInstance';
+import { scrollToPercent, pauseLenis, resumeLenis, getLenisInstance } from '../core/lenisInstance';
 import gsap from 'gsap';
 
 /**
@@ -51,7 +51,7 @@ export function CinematicNav() {
     setIsAutoPlaying(prev => !prev);
   }, []);
 
-  // Smooth Auto-Scroll RAF Loop
+  // Smooth Auto-Scroll — uses Lenis scrollTo to avoid bypassing the smooth scroll engine
   useEffect(() => {
     if (!isAutoPlaying) {
       if (autoPlayRafRef.current) cancelAnimationFrame(autoPlayRafRef.current);
@@ -59,7 +59,8 @@ export function CinematicNav() {
     }
 
     let lastTime = performance.now();
-    const scrollSpeed = 1.2; // pixels per frame (~70px/sec smooth rate)
+    // ~40px/sec — slow cinematic auto-tour pace
+    const scrollSpeed = 0.65;
 
     const step = (now: number) => {
       const delta = Math.min(32, now - lastTime);
@@ -69,22 +70,25 @@ export function CinematicNav() {
       const currentY = window.scrollY;
 
       if (currentY >= maxScroll - 5) {
-        // Pause at the bottom collection grid
         setIsAutoPlaying(false);
         return;
       }
 
-      window.scrollBy(0, (scrollSpeed * delta) / 16);
+      const targetY = Math.min(maxScroll, currentY + (scrollSpeed * delta) / 16);
+      const lenis = getLenisInstance();
+      if (lenis) {
+        // Use Lenis.scrollTo to keep the smooth-scroll engine in sync
+        lenis.scrollTo(targetY, { immediate: true });
+      } else {
+        window.scrollTo(0, targetY);
+      }
       autoPlayRafRef.current = requestAnimationFrame(step);
     };
 
     autoPlayRafRef.current = requestAnimationFrame(step);
 
-    // Pause auto-tour if user manually interacts (wheel or touch)
-    const stopOnUserAction = () => {
-      setIsAutoPlaying(false);
-    };
-
+    // Pause auto-tour on any user interaction
+    const stopOnUserAction = () => setIsAutoPlaying(false);
     window.addEventListener('wheel', stopOnUserAction, { passive: true, once: true });
     window.addEventListener('touchstart', stopOnUserAction, { passive: true, once: true });
 
@@ -383,6 +387,24 @@ export function CinematicNav() {
 
                 <div className="flex flex-col gap-1.5">
                   <a
+                    href="mailto:theprideofspices12@gmail.com?subject=Enquiry%20from%20Pride%20of%20Spices%20Website&body=Hello%2C%20I%20would%20like%20to%20enquire%20about%20your%20heritage%20spices%20and%20wild%20forest%20honey."
+                    className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/10 transition-all duration-200 group/item"
+                  >
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover/item:scale-110"
+                      style={{ background: 'rgba(234, 67, 53, 0.15)', border: '1px solid rgba(234, 67, 53, 0.35)' }}
+                    >
+                      <svg className="w-4 h-4 fill-[#EA4335]" viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                      </svg>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-semibold text-cream group-hover/item:text-gold transition-colors">Gmail Enquiry</span>
+                      <span className="text-[9.5px] text-cream/50 tracking-normal lowercase">theprideofspices12@gmail.com</span>
+                    </div>
+                  </a>
+
+                  <a
                     href={`https://wa.me/919645401284?text=${encodeURIComponent("Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.")}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -558,6 +580,28 @@ export function CinematicNav() {
             >
               {isAutoPlaying ? 'Pause Auto Tour' : 'Start Auto Tour'}
             </button>
+            <a
+              href="mailto:theprideofspices12@gmail.com?subject=Enquiry%20from%20Pride%20of%20Spices%20Website&body=Hello%2C%20I%20would%20like%20to%20enquire%20about%20your%20heritage%20spices%20and%20wild%20forest%20honey."
+              className="font-sans uppercase"
+              style={{
+                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
+                letterSpacing: '0.24em',
+                color: '#EA4335',
+                border: '1px solid rgba(234,67,53,0.6)',
+                background: 'rgba(234,67,53,0.1)',
+                borderRadius: '2px',
+                padding: '0.875rem 2rem',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: mobileOpen ? 1 : 0,
+                transition: 'opacity 0.4s ease 260ms',
+              }}
+              onClick={() => setMobileOpen(false)}
+            >
+              Gmail: theprideofspices12@gmail.com
+            </a>
             <a
               href={`https://wa.me/919645401284?text=${encodeURIComponent("Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.")}`}
               target="_blank"

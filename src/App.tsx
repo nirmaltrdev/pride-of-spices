@@ -7,6 +7,7 @@ import { Scene4_Harvest } from './scenes/Scene4_Harvest';
 import { Scene4_5_Honey } from './scenes/Scene4_5_Honey';
 import { Scene5_Collection } from './scenes/Scene5_Collection';
 import { Preloader } from './components/Preloader';
+import { CustomCursor } from './components/CustomCursor';
 import { useLenis } from './hooks/useLenis';
 
 /**
@@ -28,6 +29,9 @@ function App() {
 
   return (
     <>
+      {/* Precision Custom Cursor */}
+      <CustomCursor />
+
       {/* Cinematic preloader — critical image preload */}
       {!isLoaded && <Preloader onComplete={handlePreloadComplete} />}
 

@@ -114,6 +114,12 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product) return;
+    const subject = encodeURIComponent(`Order / Allocation Request: ${product.name} — ${formState.name}`);
+    const body = encodeURIComponent(
+      `Product: ${product.name}\nName: ${formState.name}\nEmail: ${formState.email}\nCountry: ${formState.country}\nEstimated Quantity: ${formState.quantity || 'Standard'}\n\nMessage / Notes:\n${formState.message || 'I would like to inquire about ordering this spice.'}`
+    );
+    window.location.href = `mailto:theprideofspices12@gmail.com?subject=${subject}&body=${body}`;
     setSubmitted(true);
   };
 
@@ -449,6 +455,13 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                     WhatsApp Inquiry for {product.name}
                   </a>
                   <a
+                    href={`mailto:theprideofspices12@gmail.com?subject=${encodeURIComponent(`Product Inquiry: ${product.name}`)}&body=${encodeURIComponent(`Hello, I would like to order / inquire about ${product.name}. Please share pricing and shipping details.`)}`}
+                    className="btn-ghost w-full"
+                    style={{ justifyContent: 'center', textAlign: 'center', textTransform: 'none', letterSpacing: '0.08em' }}
+                  >
+                    Gmail: theprideofspices12@gmail.com
+                  </a>
+                  <a
                     href="tel:+919645401284"
                     className="btn-ghost w-full"
                     style={{ justifyContent: 'center', textAlign: 'center' }}
@@ -500,10 +513,10 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                   Inquiry Received
                 </h2>
                 <p
-                  className="font-sans text-cream/55 leading-relaxed"
-                  style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)', maxWidth: '300px' }}
+                  className="font-sans text-cream/70 leading-relaxed"
+                  style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)', maxWidth: '360px' }}
                 >
-                  Thank you for your interest in {product.name}. We'll be in touch within 48 hours.
+                  Thank you for your interest in {product.name}. Your request has been formatted for <span className="text-gold">theprideofspices12@gmail.com</span>. We will respond promptly.
                 </p>
                 <button
                   onClick={handleClose}

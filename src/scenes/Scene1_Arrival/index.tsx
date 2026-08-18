@@ -183,45 +183,46 @@ export function Scene1_Arrival() {
 
     const ctx = gsap.context(() => {
       if (!prefersReducedMotion) {
-        // Scene container opacity tied to 0-13% range
+        // Scene container starts exit at 0.09 and takes 0.08 to fade —
+        // this guarantees full overlap with Scene2 which enters at 0.11
         masterTimeline.fromTo(sceneRef.current,
-          { opacity: 1 },
-          { opacity: 0, duration: 0.04, ease: 'power1.inOut' },
-          0.11
+          { opacity: 1, pointerEvents: 'auto', visibility: 'visible' },
+          { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut' },
+          0.09
         );
 
-        // Title wrapper rises and fades between 0 and 12% scroll
+        // Title wrapper rises and fades between 0 and 14% scroll
         masterTimeline.fromTo(titleWrapRef.current,
           { opacity: 1, y: 0, filter: 'blur(0px)' },
-          { y: -80, opacity: 0, filter: 'blur(4px)', duration: 0.12, ease: 'power2.in' },
+          { y: -60, opacity: 0, filter: 'blur(3px)', duration: 0.14, ease: 'power2.in' },
           0
         );
 
-        // Background dollies forward and blurs during 0-13% of scroll
+        // Background dollies forward and blurs during 0-15% of scroll
         masterTimeline.fromTo(bgRef.current,
           { scale: 1.0, filter: 'blur(0px)' },
-          { scale: 1.25, filter: 'blur(6px)', duration: 0.13, ease: 'power2.in' },
+          { scale: 1.22, filter: 'blur(5px)', duration: 0.15, ease: 'power2.in' },
           0
         );
 
-        // Mid gradient & mist clear smoothly from 0-11%
+        // Mid gradient & mist clear smoothly from 0-13%
         masterTimeline.fromTo([midRef.current, mistRef.current, vignRef.current],
           { opacity: 1 },
-          { opacity: 0, duration: 0.11, ease: 'power1.inOut' },
+          { opacity: 0, duration: 0.13, ease: 'power1.inOut' },
           0
         );
 
-        // Light rays fade from 0-10%
+        // Light rays fade from 0-12%
         masterTimeline.fromTo(lightRayRef.current,
           { opacity: 0.4 },
-          { opacity: 0, duration: 0.10, ease: 'power1.inOut' },
+          { opacity: 0, duration: 0.12, ease: 'power1.inOut' },
           0
         );
 
-        // Scroll cue fades immediately (0-0.04)
+        // Scroll cue fades immediately (0-0.05)
         masterTimeline.fromTo(scrollCueRef.current,
           { opacity: 1 },
-          { opacity: 0, duration: 0.04, ease: 'power1.in' },
+          { opacity: 0, duration: 0.05, ease: 'power1.in' },
           0
         );
       } else {
@@ -355,9 +356,9 @@ export function Scene1_Arrival() {
           {/* Subtitle */}
           <p
             ref={subtitleRef}
-            className="font-sans text-cream/65 select-none"
+            className="font-sans text-cream/80 select-none"
             style={{
-              fontSize: 'clamp(0.7rem, 1.4vw, 0.85rem)',
+              fontSize: 'clamp(0.72rem, 1.4vw, 0.9rem)',
               letterSpacing: '0.18em',
               marginTop: 'clamp(0.75rem, 1.5vh, 1rem)',
               textShadow: '0 2px 16px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.8)',
@@ -365,7 +366,14 @@ export function Scene1_Arrival() {
               opacity: 0,
             }}
           >
-            Heritage Spices &amp; Forest Honey · Wayanad, Kerala
+            Natural Wayanadan Spices at Your Doorstep
+            <br />
+            <span
+              className="font-sans uppercase text-gold/90 inline-block mt-1"
+              style={{ fontSize: '0.85em', letterSpacing: '0.22em' }}
+            >
+              Heritage Spices &amp; Forest Honey · Wayanad, Kerala
+            </span>
           </p>
 
           {/* Animated Scroll Cue */}

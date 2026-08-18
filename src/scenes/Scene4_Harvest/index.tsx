@@ -34,16 +34,16 @@ export function Scene4_Harvest() {
 
     const ctx = gsap.context(() => {
       // Initialize hidden — GSAP will reveal at the correct scroll position
-      gsap.set(sceneRef.current, { opacity: 0 });
+      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' });
 
       if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.03 }, 0.52);
-        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03 }, 0.69);
+        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.03 }, 0.52);
+        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.03 }, 0.69);
         return;
       }
 
-      // === ENTRY at 52% scroll (overlaps Scene3 exit at 0.54) ===
-      masterTimeline.fromTo(sceneRef.current, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: 'power2.inOut' }, 0.52);
+      // === ENTRY at 50% scroll (overlaps Scene3 exit which runs 0.52–0.60) ===
+      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.08, ease: 'power2.inOut' }, 0.50);
 
       // Harvest background — black pepper spread
       masterTimeline.fromTo(harvestBgRef.current,
@@ -100,10 +100,10 @@ export function Scene4_Harvest() {
         0.63
       );
 
-      // === SCENE EXIT: Fades out at 69% (overlaps Scene4.5 entry at 0.68) ===
-      masterTimeline.to(curingTextRef.current, { opacity: 0, duration: 0.03 }, 0.68);
-      masterTimeline.to(warmOverlayRef.current, { opacity: 0, duration: 0.03 }, 0.68);
-      masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.03, ease: 'power1.inOut' }, 0.69);
+      // === SCENE EXIT: starts at 0.67, runs 0.08 — overlaps Scene4.5 entry at 0.68 ===
+      masterTimeline.to(curingTextRef.current, { opacity: 0, duration: 0.04 }, 0.67);
+      masterTimeline.to(warmOverlayRef.current, { opacity: 0, duration: 0.04 }, 0.67);
+      masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut' }, 0.67);
     }, sceneRef);
 
     return () => ctx.revert();
