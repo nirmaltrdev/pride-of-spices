@@ -27,6 +27,9 @@ export function Preloader({ onComplete }: PreloaderProps) {
     // Minimum display time for a premium loading experience
     const minTime = new Promise<void>(resolve => setTimeout(resolve, 1400));
 
+    // Hard fallback timeout: guarantees preloader dismisses even if network or fonts hang
+    const maxTimeout = new Promise<void>(resolve => setTimeout(resolve, 3500));
+
     // Poll image loading progress every 80ms
     const progressInterval = setInterval(() => {
       if (!isActive) return;
@@ -34,11 +37,14 @@ export function Preloader({ onComplete }: PreloaderProps) {
       setProgress(Math.min(p, 99)); // Cap at 99 until everything resolves
     }, 80);
 
-    Promise.all([
-      AssetLoader.preloadStage(1),
-      // Guarantee fonts are fully loaded before dismissing
-      document.fonts.ready,
-      minTime,
+    Promise.race([
+      Promise.all([
+        AssetLoader.preloadStage(1),
+        // Guarantee fonts are fully loaded before dismissing
+        document.fonts.ready,
+        minTime,
+      ]),
+      maxTimeout,
     ]).then(() => {
       if (!isActive) return;
       clearInterval(progressInterval);

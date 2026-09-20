@@ -122,7 +122,6 @@ export function Scene4_5_Honey() {
       ref={sceneRef}
       id="scene-honey"
       className="absolute inset-0 w-full h-full pointer-events-none z-[7]"
-      style={{ transformStyle: 'preserve-3d' }}
       aria-label="The Wild Forest Honey of the Nilgiri Biosphere"
     >
       {/* === BASE: Honey atmospheric background === */}

@@ -6,6 +6,23 @@
     <!-- viewport-fit=cover is REQUIRED for env(safe-area-inset-*) to work on iOS Safari -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
+    <!-- Safe Storage Initialization for First-Time Visitors & Resilience -->
+    <script>
+      (function() {
+        try {
+          if (typeof window !== 'undefined' && window.localStorage) {
+            var key = 'pride_of_spices_muted';
+            var val = window.localStorage.getItem(key);
+            if (val === null || (val !== 'true' && val !== 'false')) {
+              window.localStorage.setItem(key, 'false');
+            }
+          }
+        } catch (e) {
+          // Storage blocked/insecure (Incognito mode, strict cookies) — fail gracefully
+        }
+      })();
+    </script>
+
     <!-- Primary Meta Tags -->
     <meta name="description" content="The Pride of Spices — Premium heritage spices and pure wild forest honey sourced directly from Wayanad, Kerala. Hand-harvested, traditionally processed, naturally pure. Black pepper, cardamom, cinnamon, cloves, nutmeg, turmeric, and wild honey." />
     <meta name="keywords" content="Wayanad spices, black pepper Kerala, wild forest honey, organic spices India, traditional spices, premium spices, cardamom, cinnamon Ceylon, turmeric, cloves, nutmeg, Nilgiri honey, export spices India" />

@@ -116,7 +116,6 @@ export function Scene4_Harvest() {
       ref={sceneRef}
       id="scene-harvest"
       className="absolute inset-0 w-full h-full pointer-events-none z-[6]"
-      style={{ transformStyle: 'preserve-3d' }}
       aria-label="The Traditional Harvest Process"
     >
       {/* === BASE: Black pepper harvest spread === */}

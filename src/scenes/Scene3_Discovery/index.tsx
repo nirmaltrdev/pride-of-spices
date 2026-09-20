@@ -140,7 +140,6 @@ export function Scene3_Discovery() {
       ref={sceneRef}
       id="scene-discovery"
       className="absolute inset-0 w-full h-full pointer-events-none z-[4]"
-      style={{ transformStyle: 'preserve-3d' }}
       aria-label="Discovering the Pepper Vines of Wayanad"
     >
       {/* === BASE: Wide plantation background === */}

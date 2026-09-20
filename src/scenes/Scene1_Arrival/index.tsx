@@ -204,11 +204,10 @@ export function Scene1_Arrival() {
   }, [masterTimeline, prefersReducedMotion]);
 
   return (
-    <header
+    <section
       ref={sceneRef}
       id="scene-arrival"
-      className="absolute inset-0 w-full h-full pointer-events-none z-[4]"
-      style={{ transformStyle: 'preserve-3d' }}
+      className="absolute inset-0 w-full h-full flex flex-col items-center justify-center overflow-hidden z-10"
       aria-label="The Pride of Spices — Heritage Spices and Forest Honey from Wayanad"
     >
       {/* Background Forest Path */}
@@ -393,6 +392,6 @@ export function Scene1_Arrival() {
           </div>
         </div>
       </div>
-    </header>
+    </section>
   );
 }

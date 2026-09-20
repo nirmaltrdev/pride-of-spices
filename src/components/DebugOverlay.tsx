@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { getLenisInstance } from '../core/lenisInstance';
+import { safeStorage } from '../core/storage/safeStorage';
 
 /**
  * DEBUG OVERLAY — Live Runtime Diagnostic Panel
@@ -18,6 +19,12 @@ interface SceneState {
   rectTop: number;
   rectHeight: number;
   inViewport: boolean;
+}
+
+interface StorageState {
+  isAvailable: boolean;
+  mutedValue: string | null;
+  parsedMuted: boolean;
 }
 
 interface DebugState {
@@ -47,6 +54,7 @@ interface DebugState {
   centerOpacity: string;
   centerVisibility: string;
   centerZIndex: string;
+  storage: StorageState;
   isBlank: boolean;
   blankReason: string;
 }
@@ -151,6 +159,7 @@ function collectState(): DebugState {
     centerOpacity: centerCs ? parseFloat(centerCs.opacity).toFixed(2) : '?',
     centerVisibility: centerCs?.visibility ?? '?',
     centerZIndex: centerCs?.zIndex ?? '?',
+    storage: safeStorage.getDiagnostics(),
     isBlank,
     blankReason,
   };
@@ -242,6 +251,13 @@ export function DebugOverlay() {
         <R k="zoom" v={state.zoomEstimate} />
         <R k="reducedMotion" v={state.prefersReducedMotion} warn={state.prefersReducedMotion} />
         <R k="hwConcurrency" v={state.hardwareConcurrency} />
+      </div>
+
+      <div style={S}>
+        <span style={SL}>Storage & Mute</span>
+        <R k="storage.status" v={state.storage.isAvailable ? 'available' : 'blocked (memory)'} warn={!state.storage.isAvailable} />
+        <R k="muted.raw" v={state.storage.mutedValue !== null ? `"${state.storage.mutedValue}"` : 'null (empty)'} />
+        <R k="muted.parsed" v={state.storage.parsedMuted ? 'true (muted)' : 'false (ready)'} />
       </div>
 
       <div style={S}>
