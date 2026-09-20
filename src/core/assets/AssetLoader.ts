@@ -36,27 +36,24 @@ class AssetLoaderService {
         this.cache.delete(asset.id);
         this.abortControllers.delete(asset.id);
         
-        console.error(`[AssetLoader] Failed to load asset: ${asset.id}`);
-        console.error(`[AssetLoader] Requested URL: ${img.src}`);
-        console.error(`[AssetLoader] Document Origin: ${window.location.origin}`);
-        console.error(`[AssetLoader] crossOrigin Attribute: ${img.crossOrigin}`);
-
+        console.warn(`[AssetLoader] Failed to load asset: ${asset.id} (${img.src})`);
         reject(new Error(`Failed to load asset: ${asset.id}`));
       };
-
-      // Set crossOrigin if we ever load from external CDNs
-      img.crossOrigin = 'anonymous';
 
       controller.signal.addEventListener('abort', () => {
         img.src = ''; // Cancel the load
         reject(new Error('Aborted'));
       });
 
-      // Prefer WebP or AVIF if browser supports it, but since we are just preloading into browser cache,
-      // loading the raw source or the best fallback is typical. For actual render, <picture> is used.
-      // We will preload the best optimized source we assume is supported, but to be safe without sniffing,
-      // preloading the primary source ensures the fallback is ready.
-      img.src = asset.source; 
+      // Use the WebP optimized source if available — this matches what the <picture>
+      // element actually serves and ensures the preloaded bytes are reused.
+      // Do NOT use crossOrigin on same-origin assets (it causes CORS fetch mode
+      // that can fail if the server doesn't send CORS headers, breaking preload).
+      const src =
+        asset.optimizedSources?.webp ??
+        asset.optimizedSources?.avif ??
+        asset.source;
+      img.src = src;
     });
 
     // We trap the error internally so Promise.all doesn't fail completely on one bad asset

@@ -4,23 +4,10 @@ import { useMasterTimeline } from '../../core/controllers/SceneContext';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { CinematicImage } from '../../components/CinematicImage';
 import { Assets } from '../../core/assets/AssetManifest';
-import { scrollToPercent } from '../../core/lenisInstance';
+import { scrollToScene } from '../../core/lenisInstance';
 
 /**
- * SCENE 1: ARRIVAL — Version 3 (Cinematic Production Polish)
- *
- * Timeline positions (master timeline = 1.0 second = 100% scroll):
- *   0.00 → Scene entry / hero visible
- *   0.11 → Exit begins (overlaps with Scene 2's entry at 0.11)
- *   0.14 → Scene fully faded (Scene 2 has fully taken over)
- *
- * Text Entry Animation (load-time):
- *   - Heading: fade + 20px upward + blur reduction (filter: blur(6px) → 0)
- *   - Subtitle: staggered delay after heading
- *   - Scroll cue: fades last
- *
- * GPU Acceleration: Only transform + opacity used throughout.
- * will-change: set on actively animated elements, cleaned up after completion.
+ * SCENE 1: ARRIVAL
  */
 export function Scene1_Arrival() {
   const { masterTimeline } = useMasterTimeline();
@@ -38,9 +25,6 @@ export function Scene1_Arrival() {
   const lightRayRef = useRef<HTMLDivElement>(null);
   const scrollCueRef = useRef<HTMLDivElement>(null);
 
-  // On-load entry animation (not scroll-tied) — text reveals with blur + rise
-  // CRITICAL: Wrapping in document.fonts.ready guarantees web fonts are loaded
-  // before any text-bearing elements become visible. Prevents invisible-text flash.
   useLayoutEffect(() => {
     let isActive = true;
     let ctx: gsap.Context | null = null;
@@ -48,11 +32,11 @@ export function Scene1_Arrival() {
 
     const showAllFallback = () => {
       if (titleWrapRef.current) gsap.set(titleWrapRef.current, { opacity: 1 });
-      if (eyebrowRef.current) gsap.set(eyebrowRef.current, { opacity: 1, y: 0, filter: 'blur(0px)' });
-      if (headingRef.current) gsap.set(headingRef.current, { opacity: 1, y: 0, filter: 'blur(0px)' });
+      if (eyebrowRef.current) gsap.set(eyebrowRef.current, { opacity: 1, y: 0 });
+      if (headingRef.current) gsap.set(headingRef.current, { opacity: 1, y: 0 });
       if (subtitleRef.current) gsap.set(subtitleRef.current, { opacity: 1, y: 0 });
       if (scrollCueRef.current) gsap.set(scrollCueRef.current, { opacity: 1, y: 0 });
-      if (bgRef.current) gsap.set(bgRef.current, { scale: 1.0, filter: 'blur(0px)' });
+      if (bgRef.current) gsap.set(bgRef.current, { scale: 1.0 });
       if (mistRef.current) gsap.set(mistRef.current, { opacity: 1 });
       if (lightRayRef.current) gsap.set(lightRayRef.current, { opacity: 0.4, x: '0%' });
     };
@@ -65,79 +49,73 @@ export function Scene1_Arrival() {
     const startEntryAnimation = () => {
       if (!isActive) return;
 
-      // Fail-safe: content always becomes visible even if GSAP is interrupted
       fallbackTimeout = setTimeout(() => {
         if (isActive) showAllFallback();
-      }, 4500);
+      }, 3500);
 
       ctx = gsap.context(() => {
-        gsap.set([bgRef.current, titleWrapRef.current], { willChange: 'transform, opacity' });
-
         const entry = gsap.timeline({
-          delay: 0.3,
+          delay: 0.2,
           onComplete: () => {
             if (fallbackTimeout) clearTimeout(fallbackTimeout);
-            // Release GPU compositing layers after animation completes
-            gsap.set([bgRef.current, titleWrapRef.current], { willChange: 'auto' });
           },
         });
 
-        // Background camera push-in: blurry → focused → clear
+        // Background camera push-in
         entry.fromTo(
           bgRef.current,
-          { scale: 1.12, filter: 'blur(8px)' },
-          { scale: 1.0, filter: 'blur(0px)', duration: 2.8, ease: 'power3.out' }
+          { scale: 1.08, opacity: 0.8 },
+          { scale: 1.0, opacity: 1, duration: 2.2, ease: 'power2.out' }
         );
 
         // Morning mist breathes in
         entry.fromTo(
           mistRef.current,
           { opacity: 0 },
-          { opacity: 1, duration: 1.8, ease: 'power1.out' },
-          0.3
+          { opacity: 1, duration: 1.6, ease: 'power1.out' },
+          0.2
         );
 
         // Light rays sweep in from left
         entry.fromTo(
           lightRayRef.current,
           { opacity: 0, x: '-15%' },
-          { opacity: 0.4, x: '0%', duration: 2.8, ease: 'power2.out' },
-          0.6
+          { opacity: 0.4, x: '0%', duration: 2.4, ease: 'power2.out' },
+          0.4
         );
 
-        // Eyebrow label fades in with slight upward drift
+        // Eyebrow label
         entry.fromTo(
           eyebrowRef.current,
-          { opacity: 0, y: 12, filter: 'blur(4px)' },
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.2, ease: 'power2.out' },
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 1.0, ease: 'power2.out' },
+          0.5
+        );
+
+        // Main heading
+        entry.fromTo(
+          headingRef.current,
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 1.2, ease: 'power2.out' },
           0.7
         );
 
-        // Main heading: blur reduction + upward rise — cinematic word reveal
-        entry.fromTo(
-          headingRef.current,
-          { opacity: 0, y: 20, filter: 'blur(6px)' },
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.4, ease: 'power2.out' },
-          0.9
-        );
-
-        // Subtitle fades in after heading settles
+        // Subtitle
         entry.fromTo(
           subtitleRef.current,
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 1.0, ease: 'power2.out' },
+          1.1
+        );
+
+        // Scroll cue
+        entry.fromTo(
+          scrollCueRef.current,
           { opacity: 0, y: 10 },
           { opacity: 1, y: 0, duration: 1.0, ease: 'power2.out' },
           1.4
         );
 
-        // Scroll cue appears last
-        entry.fromTo(
-          scrollCueRef.current,
-          { opacity: 0, y: 10 },
-          { opacity: 1, y: 0, duration: 1.0, ease: 'power2.out' },
-          1.8
-        );
-
-        // Scroll cue: proper fromTo loop so it resets between cycles (not just scaleY:0 forever)
         gsap.fromTo(
           '[data-scroll-line]',
           { scaleY: 1, transformOrigin: 'top', opacity: 1 },
@@ -149,13 +127,12 @@ export function Scene1_Arrival() {
             ease: 'power1.inOut',
             repeat: -1,
             repeatDelay: 0.4,
-            delay: 2.8,
+            delay: 2.0,
           }
         );
       }, sceneRef);
     };
 
-    // Gate animation start on font readiness — eliminates invisible-text flash
     if (document.fonts && document.fonts.status === 'loaded') {
       startEntryAnimation();
     } else if (document.fonts && document.fonts.ready) {
@@ -177,56 +154,49 @@ export function Scene1_Arrival() {
     };
   }, [prefersReducedMotion]);
 
-  // Scroll-tied EXIT animation — overlaps with Scene 2 entry at 0.11
+  // Scroll-tied EXIT animation
   useLayoutEffect(() => {
     if (!masterTimeline || !sceneRef.current) return;
 
     const ctx = gsap.context(() => {
       if (!prefersReducedMotion) {
-        // Scene container starts exit at 0.10 — exactly when Scene2 begins fading in.
-        // This ensures zero gap: as Scene1 starts fading out, Scene2 is already fading in.
         masterTimeline.fromTo(sceneRef.current,
-          { opacity: 1, pointerEvents: 'auto', visibility: 'visible' },
-          { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut' },
+          { opacity: 1, pointerEvents: 'auto' },
+          { opacity: 0, pointerEvents: 'none', duration: 0.08, ease: 'power1.inOut' },
           0.10
         );
 
-        // Title wrapper rises and fades between 0 and 14% scroll
         masterTimeline.fromTo(titleWrapRef.current,
-          { opacity: 1, y: 0, filter: 'blur(0px)' },
-          { y: -60, opacity: 0, filter: 'blur(3px)', duration: 0.14, ease: 'power2.in' },
+          { opacity: 1, y: 0 },
+          { y: -50, opacity: 0, duration: 0.12, ease: 'power2.in' },
           0
         );
 
-        // Background dollies forward and blurs during 0-15% of scroll
         masterTimeline.fromTo(bgRef.current,
-          { scale: 1.0, filter: 'blur(0px)' },
-          { scale: 1.22, filter: 'blur(5px)', duration: 0.15, ease: 'power2.in' },
+          { scale: 1.0 },
+          { scale: 1.14, duration: 0.14, ease: 'power2.in' },
           0
         );
 
-        // Mid gradient & mist clear smoothly from 0-13%
         masterTimeline.fromTo([midRef.current, mistRef.current, vignRef.current],
           { opacity: 1 },
-          { opacity: 0, duration: 0.13, ease: 'power1.inOut' },
-          0
-        );
-
-        // Light rays fade from 0-12%
-        masterTimeline.fromTo(lightRayRef.current,
-          { opacity: 0.4 },
           { opacity: 0, duration: 0.12, ease: 'power1.inOut' },
           0
         );
 
-        // Scroll cue fades immediately (0-0.05)
+        masterTimeline.fromTo(lightRayRef.current,
+          { opacity: 0.4 },
+          { opacity: 0, duration: 0.10, ease: 'power1.inOut' },
+          0
+        );
+
         masterTimeline.fromTo(scrollCueRef.current,
           { opacity: 1 },
           { opacity: 0, duration: 0.05, ease: 'power1.in' },
           0
         );
       } else {
-        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.15 }, 0);
+        masterTimeline.to(sceneRef.current, { opacity: 0, duration: 0.12 }, 0);
       }
     }, sceneRef);
 
@@ -234,14 +204,14 @@ export function Scene1_Arrival() {
   }, [masterTimeline, prefersReducedMotion]);
 
   return (
-    <div
+    <header
       ref={sceneRef}
+      id="scene-arrival"
       className="absolute inset-0 w-full h-full pointer-events-none z-[4]"
       style={{ transformStyle: 'preserve-3d' }}
-      role="img"
-      aria-label="Cinematic arrival scene — The Pride of Spices from the Heart of Wayanad"
+      aria-label="The Pride of Spices — Heritage Spices and Forest Honey from Wayanad"
     >
-      {/* === LAYER 1: Deep Background Forest Path === */}
+      {/* Background Forest Path */}
       <div
         ref={bgRef}
         className="absolute inset-0 origin-center will-change-transform"
@@ -253,17 +223,17 @@ export function Scene1_Arrival() {
         />
       </div>
 
-      {/* === LAYER 2: Bottom depth gradient === */}
+      {/* Bottom depth gradient */}
       <div
         ref={midRef}
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(to top, rgba(4,8,4,0.85) 0%, transparent 50%)',
-          opacity: 0.7
+          background: 'linear-gradient(to top, rgba(3,7,3,0.92) 0%, transparent 50%)',
+          opacity: 0.8
         }}
       />
 
-      {/* === LAYER 3: Diagonal Sun Rays === */}
+      {/* Diagonal Sun Rays */}
       <div
         ref={lightRayRef}
         className="absolute inset-0 pointer-events-none"
@@ -274,142 +244,155 @@ export function Scene1_Arrival() {
         }}
       />
 
-      {/* === LAYER 4: Morning Mist === */}
+      {/* Morning Mist */}
       <div
         ref={mistRef}
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse 130% 100% at center 40%, rgba(230,225,210,0.35) 0%, rgba(190,205,185,0.15) 50%, rgba(20,30,20,0.0) 100%)',
+          background: 'radial-gradient(ellipse 130% 100% at center 40%, rgba(230,225,210,0.30) 0%, rgba(190,205,185,0.12) 50%, rgba(20,30,20,0.0) 100%)',
           opacity: 0
         }}
       />
 
-      {/* === LAYER 5: Strong Dark Vignette — improves text readability === */}
+      {/* Dark Vignette */}
       <div
         ref={vignRef}
         className="absolute inset-0 pointer-events-none"
         style={{
-          // Stronger vignette for better text contrast, preserves visual depth
-          background: 'radial-gradient(ellipse at center, transparent 20%, rgba(3,7,3,0.55) 65%, rgba(3,7,3,0.90) 100%)'
+          background: 'radial-gradient(ellipse at center, transparent 20%, rgba(2,6,2,0.60) 65%, rgba(2,6,2,0.95) 100%)'
         }}
       />
 
-      {/* === LAYER 6: Adaptive text-area gradient — ensures heading legibility === */}
+      {/* Adaptive text scrim */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'linear-gradient(to bottom, rgba(4,8,4,0.4) 0%, transparent 30%, transparent 60%, rgba(4,8,4,0.5) 100%)'
+          background: 'radial-gradient(circle at center, rgba(3,8,3,0.55) 0%, transparent 75%)'
         }}
       />
 
-      {/* === CINEMATIC TITLE CARD ===
-           The wrapper is visible (opacity:1); individual children start at opacity:0
-           and are animated in sequence by the GSAP entry timeline above. === */}
+      {/* Cinematic Title Card */}
       <div
         ref={titleWrapRef}
         className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
         style={{
           opacity: 1,
-          // Shift content up slightly on notch devices so it doesn't sit behind Dynamic Island
           paddingTop: 'env(safe-area-inset-top)',
         }}
       >
-        <div className="text-center px-6 md:px-4">
+        <div className="text-center px-4 w-full max-w-4xl mx-auto">
           {/* Eyebrow */}
           <p
             ref={eyebrowRef}
-            className="font-sans text-cream/60 uppercase select-none"
+            className="font-sans text-cream/80 uppercase select-none font-medium"
             style={{
-              fontSize: 'clamp(0.68rem, 1.4vw, 0.78rem)',
+              fontSize: 'clamp(0.72rem, 1.4vw, 0.85rem)',
               letterSpacing: '0.38em',
-              textShadow: '0 1px 12px rgba(0,0,0,0.8)',
+              textShadow: '0 2px 14px rgba(0,0,0,0.9)',
               opacity: 0,
             }}
           >
             From the Heart of Wayanad
           </p>
 
-          {/* Main Title — refined text shadow for adaptive contrast */}
+          {/* Main Title */}
           <h1
             ref={headingRef}
-            className="font-serif text-cream select-none"
+            className="font-serif text-cream select-none font-semibold"
             style={{
-              fontSize: 'clamp(2.6rem, 11vw, 10rem)',
+              fontSize: 'clamp(2.6rem, 10vw, 8.5rem)',
               lineHeight: 1.02,
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.015em',
               textWrap: 'balance',
               marginTop: 'clamp(0.75rem, 2vh, 1.25rem)',
-              // Multi-layer text shadow: strong offset shadow + subtle mid glow
-              textShadow: '0 4px 40px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.9), 0 16px 80px rgba(0,0,0,0.5)',
+              textShadow: '0 4px 40px rgba(0,0,0,0.95), 0 2px 12px rgba(0,0,0,0.95)',
               opacity: 0,
             }}
           >
             The Pride<br />
             <span
-              className="italic"
-              style={{ color: '#D4932A', fontSize: '0.75em' }}
+              className="italic font-normal"
+              style={{ color: '#E8B44D', fontSize: '0.78em' }}
             >
               of Spices
             </span>
           </h1>
 
           {/* Subtitle */}
-          <p
+          <div
             ref={subtitleRef}
-            className="font-sans text-cream/80 select-none"
-            style={{
-              fontSize: 'clamp(0.72rem, 1.4vw, 0.9rem)',
-              letterSpacing: '0.18em',
-              marginTop: 'clamp(0.75rem, 1.5vh, 1rem)',
-              textShadow: '0 2px 16px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.8)',
-              textWrap: 'balance',
-              opacity: 0,
-            }}
+            className="font-sans text-cream select-none mt-4 mx-auto max-w-2xl px-2"
+            style={{ opacity: 0 }}
           >
-            Natural Wayanadan Spices at Your Doorstep
-            <br />
-            <span
-              className="font-sans uppercase text-gold/90 inline-block mt-1"
-              style={{ fontSize: '0.85em', letterSpacing: '0.22em' }}
+            <p
+              className="font-medium text-cream/90"
+              style={{
+                fontSize: 'clamp(0.85rem, 1.8vw, 1.05rem)',
+                letterSpacing: '0.12em',
+                textShadow: '0 2px 16px rgba(0,0,0,0.95)',
+                lineHeight: 1.5,
+              }}
+            >
+              Natural Wayanadan Spices at Your Doorstep
+            </p>
+            <p
+              className="font-medium uppercase text-gold mt-1.5"
+              style={{
+                fontSize: 'clamp(0.72rem, 1.4vw, 0.85rem)',
+                letterSpacing: '0.2em',
+                textShadow: '0 2px 12px rgba(0,0,0,0.95)',
+                wordBreak: 'break-word',
+              }}
             >
               Heritage Spices &amp; Forest Honey · Wayanad, Kerala
-            </span>
-          </p>
+            </p>
+          </div>
 
           {/* Animated Scroll Cue */}
           <div 
             ref={scrollCueRef} 
-            className="flex flex-col items-center gap-3 cursor-pointer pointer-events-auto" 
+            className="flex flex-col items-center gap-2.5 cursor-pointer pointer-events-auto mx-auto" 
             style={{
               opacity: 0,
-              marginTop: 'clamp(1.75rem, 4vh, 2.75rem)',
+              marginTop: 'clamp(1.75rem, 4vh, 3rem)',
             }}
-            onClick={() => scrollToPercent(0.15, false, true)}
+            onClick={() => scrollToScene('forest')}
             role="button"
+            tabIndex={0}
             aria-label="Click to enter the experience"
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                scrollToScene('forest');
+              }
+            }}
           >
             <span
-              className="font-sans text-cream/35 uppercase transition-colors hover:text-cream/70"
+              className="font-sans text-cream/80 uppercase font-semibold transition-colors hover:text-gold"
               style={{
-                fontSize: 'clamp(0.5rem, 0.9vw, 0.65rem)',
-                letterSpacing: '0.35em',
-                textShadow: '0 1px 8px rgba(0,0,0,0.8)',
+                fontSize: 'clamp(0.62rem, 1.1vw, 0.72rem)',
+                letterSpacing: '0.3em',
+                textShadow: '0 2px 10px rgba(0,0,0,0.95)',
+                padding: '4px 12px',
+                borderRadius: '9999px',
+                background: 'rgba(3,8,3,0.6)',
+                border: '1px solid rgba(212,147,42,0.3)',
               }}
             >
-              Scroll or Click to Enter
+              Scroll or Click to Enter ↓
             </span>
-            <div className="relative overflow-hidden" style={{ width: '1px', height: '48px' }}>
+            <div className="relative overflow-hidden" style={{ width: '2px', height: '44px', background: 'rgba(255,255,255,0.1)' }}>
               <div
                 data-scroll-line
                 className="absolute inset-0 will-change-transform"
                 style={{
-                  background: 'linear-gradient(to bottom, rgba(212,147,42,0.8), rgba(240,230,200,0.15))',
+                  background: 'linear-gradient(to bottom, #D4932A, rgba(240,230,200,0.2))',
                 }}
               />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 }

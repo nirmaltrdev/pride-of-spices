@@ -37,89 +37,80 @@ export function Scene4_5_Honey() {
 
     const ctx = gsap.context(() => {
       // Initialize hidden — GSAP will reveal at the correct scroll position
-      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' });
+      // Initialize at opacity 0 — timeline controls reveal
+      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none' });
 
       if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.03 }, 0.68);
-        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.03 }, 0.97);
+        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.03 }, 0.68);
+        // No exit tween — sceneRef stays visible through TL=1.0 for natural unpin handoff
         return;
       }
 
-      // === ENTRY at 65% scroll (overlaps Scene4 exit which runs 0.67–0.75) ===
-      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.08, ease: 'power2.inOut' }, 0.65);
+      // === ENTRY at 68% scroll (overlaps Scene4 exit 0.68–0.74) ===
+      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut' }, 0.68);
 
-      // Honey background: parallax + saturation warm-up
+      // Honey background: parallax + saturation warm-up (GPU transform only)
       masterTimeline.fromTo(honeyBgRef.current,
-        { scale: 1.18, filter: 'blur(8px) saturate(0.5)', opacity: 0.5, y: '8%' },
-        { scale: 1.0, filter: 'blur(0px) saturate(1.4)', opacity: 1, y: '0%', duration: 0.06, ease: 'power2.out' },
+        { scale: 1.08, opacity: 0.8, y: '5%' },
+        { scale: 1.0, opacity: 1, y: '0%', duration: 0.06, ease: 'power2.out' },
         0.68
       );
-      masterTimeline.to(honeyBgRef.current, { scale: 1.06, y: '-4%', duration: 0.28, ease: 'none' }, 0.72);
+      masterTimeline.to(honeyBgRef.current, { scale: 1.05, y: '-3%', duration: 0.26, ease: 'none' }, 0.72);
 
       // Warm golden overlay blooms
       masterTimeline.fromTo(warmOverlayRef.current,
-        { opacity: 0, scale: 0.5 },
-        { opacity: 0.55, scale: 1.3, duration: 0.08, ease: 'power2.out' },
-        0.69
+        { opacity: 0, scale: 0.8 },
+        { opacity: 0.5, scale: 1.1, duration: 0.08, ease: 'power2.out' },
+        0.70
       );
 
       // Honeycomb pattern drifts
       masterTimeline.fromTo(honeycombRef.current,
-        { opacity: 0, y: '8%' },
-        { opacity: 0.22, y: '-5%', duration: 0.28, ease: 'none' },
-        0.69
+        { opacity: 0, y: '5%' },
+        { opacity: 0.25, y: '-4%', duration: 0.26, ease: 'none' },
+        0.70
       );
 
       // Honey drips
       masterTimeline.fromTo(honeyDripsRef.current,
         { opacity: 0 },
-        { opacity: 0.65, duration: 0.06, ease: 'power2.out' },
-        0.70
+        { opacity: 0.6, duration: 0.06, ease: 'power2.out' },
+        0.71
       );
 
       // Central glow
       masterTimeline.fromTo(glowRef.current,
-        { opacity: 0, scale: 0.6 },
-        { opacity: 0.75, scale: 1.1, duration: 0.07, ease: 'power2.out' },
+        { opacity: 0, scale: 0.8 },
+        { opacity: 0.65, scale: 1.05, duration: 0.07, ease: 'power2.out' },
+        0.71
+      );
+
+      // === NARRATIVE TEXT 1: The Golden Wilds (active 0.70 to 0.81) ===
+      masterTimeline.fromTo(textGroup1Ref.current,
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
         0.70
       );
 
-      // === NARRATIVE TEXT 1: The Golden Wilds ===
-      masterTimeline.fromTo(textGroup1Ref.current,
-        { opacity: 0, y: 30, filter: 'blur(4px)' },
-        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.05, ease: 'power2.out' },
-        0.73
-      );
-
-      // Transition to text 2
+      // Transition to text 2: Text 1 is completely gone at 0.81 BEFORE Text 2 enters at 0.82
       masterTimeline.to(textGroup1Ref.current, { opacity: 0, y: -15, duration: 0.03, ease: 'power2.in' }, 0.80);
 
-      // === NARRATIVE TEXT 2: The Taste ===
+      // === NARRATIVE TEXT 2: The Taste (active 0.82 to 0.93) ===
       masterTimeline.fromTo(textGroup2Ref.current,
-        { opacity: 0, y: 30, filter: 'blur(4px)' },
-        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.04, ease: 'power2.out' },
-        0.81
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        0.82
       );
 
-      // === SCENE EXIT at 0.94 (pushed from 0.88 — snap removed so no early bail needed) ===
-      // With snap gone, scene stays rich all the way to 0.94 before fading.
-      // The container and its children all fade together over 0.06 progress (≈ 45px scroll at 750vh)
-      // so the transition to the dark background is smooth and immediate.
-      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.03 }, 0.94);
+      // === SCENE EXIT: Text and ambient overlays fade out at 0.93–0.97 ===
+      // The honey BACKGROUND (honeyBgRef) and scene CONTAINER (sceneRef) deliberately
+      // stay at opacity:1 through TL=1.0. This ensures Wild Honey is visible right up
+      // until the sticky container naturally unpins and Collection scrolls into view.
+      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.03, ease: 'power2.in' }, 0.93);
       masterTimeline.to([warmOverlayRef.current, honeycombRef.current, honeyDripsRef.current, glowRef.current], {
-        opacity: 0, duration: 0.04, stagger: 0.003
+        opacity: 0, duration: 0.06, stagger: 0.005
       }, 0.94);
-      // Honey background fades to dark smoothly.
-      masterTimeline.to(honeyBgRef.current, {
-        opacity: 0, filter: 'blur(4px) saturate(0)', duration: 0.06, ease: 'power1.in'
-      }, 0.94);
-
-      // Container exits at 0.94 in sync with children — no blank frames between children
-      // fading and the container becoming transparent. SceneManager background (#021A0A)
-      // shows through for the final fraction of scroll before Collection comes into view.
-      masterTimeline.to(sceneRef.current, {
-        opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.06, ease: 'power1.inOut'
-      }, 0.94);
+      // honeyBgRef and sceneRef are NOT faded — they remain visible for the handoff.
 
     }, sceneRef);
 
@@ -129,6 +120,7 @@ export function Scene4_5_Honey() {
   return (
     <section
       ref={sceneRef}
+      id="scene-honey"
       className="absolute inset-0 w-full h-full pointer-events-none z-[7]"
       style={{ transformStyle: 'preserve-3d' }}
       aria-label="The Wild Forest Honey of the Nilgiri Biosphere"
@@ -136,7 +128,7 @@ export function Scene4_5_Honey() {
       {/* === BASE: Honey atmospheric background === */}
       <div
         ref={honeyBgRef}
-        className="absolute inset-0 origin-center will-change-transform opacity-0"
+        className="absolute inset-0 origin-center will-change-transform"
       >
         <CinematicImage 
           asset={Assets.honeyBg} 
@@ -207,31 +199,32 @@ export function Scene4_5_Honey() {
         <div
           className="cinematic-card text-center"
           style={{
-            background: 'rgba(12,8,3,0.82)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(201,168,76,0.18)',
-            padding: 'clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.65)'
+            background: 'rgba(8,5,2,0.92)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(212,147,42,0.25)',
+            padding: 'clamp(1.75rem, 4vw, 2.75rem) clamp(1.5rem, 5vw, 3.5rem)',
+            borderRadius: '0.75rem',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.85)'
           }}
         >
-          <p className="font-sans tracking-[0.34em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
+          <p className="font-sans font-medium tracking-[0.34em] uppercase mb-4" style={{ color: '#E8B44D', fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)' }}>
             The Golden Wilds
           </p>
           <h2
-            className="font-serif text-cream"
+            className="font-serif text-cream font-semibold"
             style={{
-              fontSize: 'clamp(1.8rem, 4.8vw, 3.8rem)',
+              fontSize: 'clamp(2rem, 5vw, 3.8rem)',
               lineHeight: 1.08,
               letterSpacing: '-0.02em',
               textWrap: 'balance',
-              textShadow: '0 2px 28px rgba(0,0,0,0.65)',
+              textShadow: '0 4px 30px rgba(0,0,0,0.95)',
             }}
           >
             Sourced from the<br />
-            <span className="italic" style={{ color: '#DBBF6A' }}>untamed cliffs.</span>
+            <span className="italic font-normal" style={{ color: '#E8B44D' }}>untamed cliffs.</span>
           </h2>
-          <p className="font-sans text-cream/65 mt-6 leading-relaxed max-w-lg mx-auto" style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)' }}>
+          <p className="font-sans text-cream/90 mt-5 leading-relaxed max-w-lg mx-auto font-normal" style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)', lineHeight: 1.65 }}>
             Collected by the Kattunayakan tribes deep within the Nilgiri Biosphere.
             No smoke. No disruption. Just the pure, unpasteurized nectar
             of the wild Rock Bee.
@@ -248,31 +241,32 @@ export function Scene4_5_Honey() {
         <div
           className="cinematic-card text-center"
           style={{
-            background: 'rgba(12,8,3,0.82)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(201,168,76,0.18)',
-            padding: 'clamp(1.75rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.65)'
+            background: 'rgba(8,5,2,0.92)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(212,147,42,0.25)',
+            padding: 'clamp(1.75rem, 4vw, 2.75rem) clamp(1.5rem, 5vw, 3.5rem)',
+            borderRadius: '0.75rem',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.85)'
           }}
         >
-          <p className="font-sans tracking-[0.34em] uppercase mb-6" style={{ color: '#DBBF6A', fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}>
+          <p className="font-sans font-medium tracking-[0.34em] uppercase mb-4" style={{ color: '#E8B44D', fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)' }}>
             Raw &amp; Unfiltered
           </p>
           <h2
-            className="font-serif text-cream"
+            className="font-serif text-cream font-semibold"
             style={{
-              fontSize: 'clamp(1.8rem, 4.8vw, 3.8rem)',
+              fontSize: 'clamp(2rem, 5vw, 3.8rem)',
               lineHeight: 1.08,
               letterSpacing: '-0.02em',
               textWrap: 'balance',
-              textShadow: '0 2px 28px rgba(0,0,0,0.65)',
+              textShadow: '0 4px 30px rgba(0,0,0,0.95)',
             }}
           >
             Every drop tells<br />
-            <span className="italic" style={{ color: '#DBBF6A' }}>the forest's story.</span>
+            <span className="italic font-normal" style={{ color: '#E8B44D' }}>the forest's story.</span>
           </h2>
-          <p className="font-sans text-cream/65 mt-6 leading-relaxed max-w-lg mx-auto" style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)' }}>
+          <p className="font-sans text-cream/90 mt-5 leading-relaxed max-w-lg mx-auto font-normal" style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)', lineHeight: 1.65 }}>
             Each batch carries the unique floral signature of the seasonal bloom.
             Dark and resinous from the jackfruit season. Raw, alive, and utterly
             unlike any processed honey.

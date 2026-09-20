@@ -44,96 +44,87 @@ export function Scene2_Forest() {
     if (!masterTimeline || !sceneRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Initialize hidden — GSAP will reveal at the correct scroll position
-      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' });
+      // Initialize at opacity 0 — timeline controls reveal
+      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none' });
 
       if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.04 }, 0.11);
-        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.03 }, 0.28);
+        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.04 }, 0.11);
+        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.03 }, 0.28);
         return;
       }
 
-      // === ENTRY: Scene crossfades in at 10% scroll — 0.08 duration ensures full overlap with Scene1 ===
+      // === ENTRY: Scene crossfades in at 10% scroll — full overlap with Scene1 ===
       masterTimeline.fromTo(sceneRef.current,
-        { opacity: 0, pointerEvents: 'none', visibility: 'hidden' },
-        { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.08, ease: 'power2.inOut' },
+        { opacity: 0, pointerEvents: 'none' },
+        { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut' },
         0.10
       );
 
-      // === BACKGROUND: Cinematic dolly-push into forest ===
-      // NOTE: bgScaleRef starts at scale 1.12 but opacity 1 to prevent checkerboard bleed
+      // === BACKGROUND: Cinematic dolly-push into forest (GPU transform only) ===
       masterTimeline.fromTo(bgScaleRef.current,
-        { scale: 1.12, filter: 'blur(6px)', opacity: 1 },
-        { scale: 1.0, filter: 'blur(0px)', opacity: 1, duration: 0.10, ease: 'power2.out', force3D: true },
+        { scale: 1.08, opacity: 0.7 },
+        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true },
+        0.10
+      );
+      // Slow continuous push through the forest
+      masterTimeline.to(bgScaleRef.current, {
+        scale: 1.12, y: '-4%', duration: 0.18, ease: 'none', force3D: true
+      }, 0.14);
+
+      // === CANOPY: Drops in from above ===
+      masterTimeline.fromTo(canopyRef.current,
+        { y: '-25%', opacity: 0 },
+        { y: '0%', opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true },
         0.11
       );
-      // Slow continuous push through the forest — parallax speed 1 (slowest)
-      masterTimeline.to(bgScaleRef.current, {
-        scale: 1.1, y: '-5%', duration: 0.14, ease: 'none', force3D: true
-      }, 0.15);
 
-      // === CANOPY: Drops in from above — frames the top of screen ===
-      masterTimeline.fromTo(canopyRef.current,
-        { y: '-35%', opacity: 0 },
-        { y: '0%', opacity: 1, duration: 0.1, ease: 'power3.out', force3D: true },
-        0.12
-      );
-      // Canopy parallax — moves faster than bg (parallax speed 2)
-      masterTimeline.to(canopyRef.current, {
-        y: '-12%', duration: 0.14, ease: 'none', force3D: true
-      }, 0.15);
-
-      // === MID VEGETATION: Frames left/right — creates depth tunnel ===
+      // === MID VEGETATION: Frames left/right ===
       masterTimeline.fromTo(midVegRef.current,
-        { scale: 1.28, opacity: 0 },
-        { scale: 1.0, opacity: 1, duration: 0.1, ease: 'power2.out', force3D: true },
-        0.12
+        { scale: 1.15, opacity: 0 },
+        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true },
+        0.11
       );
-      // Mid-veg parallax — moves fastest (parallax speed 3)
-      masterTimeline.to(midVegRef.current, {
-        scale: 1.06, y: '-3%', duration: 0.14, ease: 'none', force3D: true
-      }, 0.15);
 
       // === VIGNETTE: Cinema depth ===
       masterTimeline.fromTo(vignetteRef.current,
         { opacity: 0 },
         { opacity: 1, duration: 0.08, ease: 'power1.out' },
-        0.12
+        0.11
       );
 
       // === VOLUMETRIC LIGHT RAYS ===
       masterTimeline.fromTo(lightRay1Ref.current,
         { opacity: 0, x: '-8%' },
-        { opacity: 1, x: '0%', duration: 0.1, ease: 'power2.out' },
-        0.13
+        { opacity: 1, x: '0%', duration: 0.08, ease: 'power2.out' },
+        0.12
       );
       masterTimeline.fromTo(lightRay2Ref.current,
         { opacity: 0, x: '8%' },
-        { opacity: 1, x: '0%', duration: 0.1, ease: 'power2.out' },
-        0.14
+        { opacity: 1, x: '0%', duration: 0.08, ease: 'power2.out' },
+        0.13
       );
 
       // === ATMOSPHERIC MIST ===
       masterTimeline.fromTo(mistRef.current,
         { opacity: 0 },
         { opacity: 1, duration: 0.08, ease: 'power1.out' },
-        0.13
+        0.12
       );
 
-      // === NARRATIVE STANZA ===
+      // === NARRATIVE STANZA: Visible and readable from 0.14 to 0.24 ===
       masterTimeline.fromTo(stanzaRef.current,
-        { opacity: 0, y: 30, filter: 'blur(4px)' },
-        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.06, ease: 'power2.out' },
-        0.17
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        0.14
       );
       masterTimeline.to(stanzaRef.current, {
-        opacity: 0, y: -20, filter: 'blur(2px)', duration: 0.04, ease: 'power2.in'
-      }, 0.22);
-
-      // === EXIT: Scene exits cleanly starting at 0.24 with 0.08 duration (overlapping Scene3 entry at 0.26) ===
-      masterTimeline.to(sceneRef.current, {
-        opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut'
+        opacity: 0, y: -18, duration: 0.03, ease: 'power2.in'
       }, 0.24);
+
+      // === EXIT: Scene exits cleanly at 0.26–0.32 overlapping Scene3 entry at 0.26 ===
+      masterTimeline.to(sceneRef.current, {
+        opacity: 0, pointerEvents: 'none', duration: 0.06, ease: 'power1.inOut'
+      }, 0.26);
 
     }, sceneRef);
 
@@ -143,6 +134,7 @@ export function Scene2_Forest() {
   return (
     <section
       ref={sceneRef}
+      id="scene-forest"
       className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
       style={{
         /* Solid base prevents any transparent PNG showing as checkerboard */
@@ -247,49 +239,50 @@ export function Scene2_Forest() {
         className="absolute inset-0 flex flex-col items-center justify-end pointer-events-none"
         style={{
           opacity: 0,
-          paddingBottom: 'clamp(3rem, 8vh, 5rem)',
+          paddingBottom: 'clamp(2.5rem, 7vh, 4.5rem)',
         }}
       >
         <div
           className="cinematic-card text-center px-8"
           style={{
-            background: 'rgba(2,10,5,0.84)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            padding: 'clamp(1.75rem, 4.5vw, 3rem) clamp(1.5rem, 4vw, 4rem)',
-            borderRadius: '0.5rem',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.65)',
+            background: 'rgba(2,10,5,0.92)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(212,147,42,0.25)',
+            padding: 'clamp(1.75rem, 4vw, 2.75rem) clamp(1.5rem, 4vw, 3.5rem)',
+            borderRadius: '0.75rem',
+            boxShadow: '0 32px 80px rgba(0,0,0,0.85)',
           }}
         >
           <p
-            className="font-sans text-cream/50 tracking-[0.38em] uppercase mb-5"
-            style={{ fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)' }}
+            className="font-sans text-gold/90 font-medium tracking-[0.34em] uppercase mb-4"
+            style={{ fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)' }}
           >
             Western Ghats, Kerala · 800m elevation
           </p>
           <h2
-            className="font-serif text-cream"
+            className="font-serif text-cream font-semibold"
             style={{
-              fontSize: 'clamp(2.4rem, 6vw, 5rem)',
-              lineHeight: 1.05,
+              fontSize: 'clamp(2.2rem, 5.5vw, 4.2rem)',
+              lineHeight: 1.06,
               letterSpacing: '-0.015em',
               textWrap: 'balance',
-              textShadow: '0 4px 40px rgba(0,0,0,0.85), 0 1px 8px rgba(0,0,0,0.7)',
+              textShadow: '0 4px 30px rgba(0,0,0,0.95)',
             }}
           >
             Ancient forests.<br />
-            <span className="italic" style={{ color: '#D4B852', fontSize: '0.86em' }}>Living spices.</span>
+            <span className="italic font-normal" style={{ color: '#E8B44D', fontSize: '0.88em' }}>Living spices.</span>
           </h2>
           <p
-            className="font-sans text-cream/60 mt-6 leading-relaxed tracking-wide max-w-xl mx-auto"
+            className="font-sans text-cream/90 mt-5 leading-relaxed tracking-wide max-w-xl mx-auto font-normal"
             style={{
-              fontSize: 'clamp(0.82rem, 1.6vw, 1rem)',
-              textShadow: '0 2px 16px rgba(0,0,0,0.7)'
+              fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)',
+              textShadow: '0 2px 14px rgba(0,0,0,0.9)',
+              lineHeight: 1.65,
             }}
           >
             Where the monsoon meets the mountains, centuries-old pepper vines
-            weave through the untouched forests of Wayanad.
+            weave through the untouched rainforest canopy of Wayanad.
           </p>
         </div>
       </div>

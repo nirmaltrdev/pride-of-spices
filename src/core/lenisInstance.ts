@@ -22,6 +22,8 @@
  */
 
 import type Lenis from 'lenis';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SCENE_REGISTRY } from './sceneRegistry';
 
 /** The active Lenis smooth-scroll instance (null when not initialized or reduced-motion) */
 let _lenis: Lenis | null = null;
@@ -43,45 +45,88 @@ export function getLenisInstance(): Lenis | null {
 }
 
 /**
- * Scroll to a percentage position using Lenis's proper API.
- *
- * This REPLACES all `window.scrollTo()` calls in navigation components.
- *
- * @param pct                  - Scroll percentage (0.0 = top, 1.0 = bottom)
- * @param immediate            - If true, jump instantly without animation
- * @param sceneManagerRelative - If true, resolve pct relative to SceneManager height
- *                               (750vh = window.innerHeight * 7.5) instead of the full
- *                               document scrollHeight. Use this for all cinematic scene
- *                               nav links where the masterTimeline 0.0–1.0 range maps to
- *                               the 750vh SceneManager container, NOT the full page.
- *                               DEFAULT: false (uses total document scrollHeight).
+ * Scroll to a target in pixels or scene hold point with distance-proportional easing.
  */
-export function scrollToPercent(pct: number, immediate = false, sceneManagerRelative = false): void {
-  let maxScroll: number;
-
-  if (sceneManagerRelative) {
-    // SceneManager is 800vh. masterTimeline 0.0–1.0 maps to this range.
-    maxScroll = window.innerHeight * 8.0; // 800vh
-  } else {
-    maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  }
-
-  const target = Math.round(maxScroll * Math.max(0, Math.min(1, pct)));
+export function scrollToPixels(targetPx: number, immediate = false, duration?: number): void {
+  const currentY = window.scrollY;
+  const distance = Math.abs(targetPx - currentY);
+  
+  // Distance-proportional duration (between 0.8s and 2.2s) with gentle luxury easing
+  const calculatedDuration = immediate ? 0 : (duration ?? Math.max(0.8, Math.min(2.2, 0.6 + (distance / 4000))));
 
   if (_lenis) {
-    // Use Lenis's own scrollTo — keeps the smooth-scroll engine in sync
-    _lenis.scrollTo(target, {
-      // Match the Lenis instance duration / easing from useLenis
-      duration: immediate ? 0 : 1.4,
+    _lenis.scrollTo(targetPx, {
+      duration: calculatedDuration,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       immediate,
     });
   } else {
-    // Fallback: reduced-motion users, or before Lenis initializes
     window.scrollTo({
-      top: target,
+      top: targetPx,
       behavior: immediate ? 'auto' : 'smooth',
     });
+  }
+}
+
+/**
+ * Scroll to a scene by its logical ID (defined in sceneRegistry).
+ */
+export function scrollToScene(sceneId: string, immediate = false, duration?: number): void {
+  if (sceneId === 'collection') {
+    const collectionEl = document.getElementById('collection');
+    if (collectionEl) {
+      const top = collectionEl.getBoundingClientRect().top + window.scrollY;
+      scrollToPixels(top, immediate, duration);
+      return;
+    }
+  }
+
+  const scene = SCENE_REGISTRY.find(s => s.id === sceneId);
+  if (!scene) return;
+
+  // Derive target position from real master ScrollTrigger bounds
+  const st = ScrollTrigger.getById('master-scroll-trigger');
+  if (st) {
+    const totalDist = st.end - st.start;
+    const targetPx = Math.round(st.start + scene.holdPoint * totalDist);
+    scrollToPixels(targetPx, immediate, duration);
+  } else {
+    // Fallback if ScrollTrigger hasn't refreshed yet
+    const sceneManagerEl = document.querySelector('.experience-shell');
+    const height = sceneManagerEl ? sceneManagerEl.clientHeight - window.innerHeight : window.innerHeight * 7;
+    const targetPx = Math.round(scene.holdPoint * height);
+    scrollToPixels(targetPx, immediate, duration);
+  }
+}
+
+/**
+ * Scroll to a timeline progress fraction (0.0 to 1.0) on the cinematic master timeline.
+ */
+export function scrollToTimelineProgress(progress: number, immediate = false, duration?: number): void {
+  const st = ScrollTrigger.getById('master-scroll-trigger');
+  if (st) {
+    const totalDist = st.end - st.start;
+    const targetPx = Math.round(st.start + Math.max(0, Math.min(1, progress)) * totalDist);
+    scrollToPixels(targetPx, immediate, duration);
+  } else {
+    const targetPx = Math.round(Math.max(0, Math.min(1, progress)) * window.innerHeight * 7);
+    scrollToPixels(targetPx, immediate, duration);
+  }
+}
+
+/**
+ * Backward compatibility wrapper for scrollToPercent
+ */
+export function scrollToPercent(pct: number, immediate = false, sceneManagerRelative = false): void {
+  if (pct === 0) {
+    scrollToPixels(0, immediate);
+    return;
+  }
+  if (sceneManagerRelative) {
+    scrollToTimelineProgress(pct, immediate);
+  } else {
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    scrollToPixels(Math.round(maxScroll * pct), immediate);
   }
 }
 

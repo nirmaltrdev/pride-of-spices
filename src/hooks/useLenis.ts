@@ -7,6 +7,14 @@ import { setLenisInstance } from '../core/lenisInstance';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Prevent mobile dynamic toolbar / address bar resize from jittering ScrollTrigger
+if (typeof window !== 'undefined') {
+  ScrollTrigger.config({ ignoreMobileResize: true });
+  if ('scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual';
+  }
+}
+
 /**
  * useLenis — v3 (Definitive Scroll Fix)
  *

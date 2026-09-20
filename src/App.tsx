@@ -9,6 +9,7 @@ import { Scene5_Collection } from './scenes/Scene5_Collection';
 import { Preloader } from './components/Preloader';
 import { CustomCursor } from './components/CustomCursor';
 import { useLenis } from './hooks/useLenis';
+import { useRuntimeDiagnostics } from './hooks/useRuntimeDiagnostics';
 
 /**
  * THE PRIDE OF SPICES — Version 2
@@ -26,6 +27,9 @@ function App() {
 
   // Initialize Lenis for cinematic smooth scrolling (after load)
   useLenis();
+
+  // Active runtime instrumentation for Chrome DevTools
+  useRuntimeDiagnostics();
 
   return (
     <>

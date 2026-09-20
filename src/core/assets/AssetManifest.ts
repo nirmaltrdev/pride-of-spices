@@ -23,6 +23,11 @@ export enum SceneId {
   Products = 'Products'
 }
 
+export interface ResponsiveSource {
+  srcSet: string;
+  type: 'image/avif' | 'image/webp';
+}
+
 export interface AssetDefinition {
   id: string;
   scene: SceneId;
@@ -30,6 +35,7 @@ export interface AssetDefinition {
   type: 'image' | 'video' | 'audio' | 'texture';
   source: string; // Original raw file
   optimizedSources?: { avif?: string; webp?: string };
+  responsiveSources?: ResponsiveSource[];
   fallback?: string;
   width?: number;
   height?: number;
@@ -47,6 +53,19 @@ export interface AssetDefinition {
   status: 'active' | 'deprecated';
 }
 
+function makeResponsiveSources(baseName: string): ResponsiveSource[] {
+  return [
+    {
+      type: 'image/avif',
+      srcSet: `/images/optimized/${baseName}-480w.avif 480w, /images/optimized/${baseName}-800w.avif 800w, /images/optimized/${baseName}-1200w.avif 1200w`,
+    },
+    {
+      type: 'image/webp',
+      srcSet: `/images/optimized/${baseName}-480w.webp 480w, /images/optimized/${baseName}-800w.webp 800w, /images/optimized/${baseName}-1200w.webp 1200w`,
+    },
+  ];
+}
+
 export const Assets: Record<string, AssetDefinition> = {
   heroBg: {
     id: 'hero-bg',
@@ -58,6 +77,7 @@ export const Assets: Record<string, AssetDefinition> = {
       avif: '/images/optimized/hero_bg.avif',
       webp: '/images/optimized/hero_bg.webp'
     },
+    responsiveSources: makeResponsiveSources('hero_bg'),
     preloadStage: 1,
     priority: 'critical',
     loadingStrategy: 'eager',
@@ -71,6 +91,7 @@ export const Assets: Record<string, AssetDefinition> = {
     type: 'image',
     source: '/images/forest-path.jpg',
     optimizedSources: { avif: '/images/optimized/forest-path.avif', webp: '/images/optimized/forest-path.webp' },
+    responsiveSources: makeResponsiveSources('forest-path'),
     preloadStage: 1,
     priority: 'critical',
     loadingStrategy: 'eager',
@@ -84,6 +105,7 @@ export const Assets: Record<string, AssetDefinition> = {
     type: 'image',
     source: '/images/forest_mist_background.jpg',
     optimizedSources: { avif: '/images/optimized/forest_mist_background.avif', webp: '/images/optimized/forest_mist_background.webp' },
+    responsiveSources: makeResponsiveSources('forest_mist_background'),
     preloadStage: 1,
     priority: 'critical',
     loadingStrategy: 'eager',
@@ -151,6 +173,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Background,
     type: 'image',
     source: '/images/sunset.jpg',
+    optimizedSources: { avif: '/images/optimized/sunset.avif', webp: '/images/optimized/sunset.webp' },
+    responsiveSources: makeResponsiveSources('sunset'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -173,6 +197,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/black_pepper.jpg',
+    optimizedSources: { avif: '/images/optimized/black_pepper.avif', webp: '/images/optimized/black_pepper.webp' },
+    responsiveSources: makeResponsiveSources('black_pepper'),
     preloadStage: 3,
     priority: 'normal',
     loadingStrategy: 'lazy',
@@ -185,6 +211,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/white_pepper.jpg',
+    optimizedSources: { avif: '/images/optimized/white_pepper.avif', webp: '/images/optimized/white_pepper.webp' },
+    responsiveSources: makeResponsiveSources('white_pepper'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -221,6 +249,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/forest_honey.jpg',
+    optimizedSources: { avif: '/images/optimized/forest_honey.avif', webp: '/images/optimized/forest_honey.webp' },
+    responsiveSources: makeResponsiveSources('forest_honey'),
     preloadStage: 4,
     priority: 'normal',
     loadingStrategy: 'lazy',
@@ -233,6 +263,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/cardamom.jpg',
+    optimizedSources: { avif: '/images/optimized/cardamom.avif', webp: '/images/optimized/cardamom.webp' },
+    responsiveSources: makeResponsiveSources('cardamom'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -245,6 +277,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/cinnamon.jpg',
+    optimizedSources: { avif: '/images/optimized/cinnamon.avif', webp: '/images/optimized/cinnamon.webp' },
+    responsiveSources: makeResponsiveSources('cinnamon'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -257,6 +291,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/clove.jpg',
+    optimizedSources: { avif: '/images/optimized/clove.avif', webp: '/images/optimized/clove.webp' },
+    responsiveSources: makeResponsiveSources('clove'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -269,6 +305,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/nutmeg.jpg',
+    optimizedSources: { avif: '/images/optimized/nutmeg.avif', webp: '/images/optimized/nutmeg.webp' },
+    responsiveSources: makeResponsiveSources('nutmeg'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -281,6 +319,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/turmeric.jpg',
+    optimizedSources: { avif: '/images/optimized/turmeric.avif', webp: '/images/optimized/turmeric.webp' },
+    responsiveSources: makeResponsiveSources('turmeric'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -293,6 +333,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/chili.jpg',
+    optimizedSources: { avif: '/images/optimized/chili.avif', webp: '/images/optimized/chili.webp' },
+    responsiveSources: makeResponsiveSources('chili'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -305,6 +347,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/cinnamon-nutmeg.jpg',
+    optimizedSources: { avif: '/images/optimized/cinnamon-nutmeg.avif', webp: '/images/optimized/cinnamon-nutmeg.webp' },
+    responsiveSources: makeResponsiveSources('cinnamon-nutmeg'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -321,6 +365,7 @@ export const Assets: Record<string, AssetDefinition> = {
       avif: '/images/optimized/ginger.avif',
       webp: '/images/optimized/ginger.webp',
     },
+    responsiveSources: makeResponsiveSources('ginger'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -337,6 +382,7 @@ export const Assets: Record<string, AssetDefinition> = {
       avif: '/images/optimized/coriander.avif',
       webp: '/images/optimized/coriander.webp',
     },
+    responsiveSources: makeResponsiveSources('coriander'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -349,6 +395,8 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/white_pepper.jpg',
+    optimizedSources: { avif: '/images/optimized/white_pepper.avif', webp: '/images/optimized/white_pepper.webp' },
+    responsiveSources: makeResponsiveSources('white_pepper'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -365,6 +413,7 @@ export const Assets: Record<string, AssetDefinition> = {
       avif: '/images/optimized/crushed_pepper.avif',
       webp: '/images/optimized/crushed_pepper.webp',
     },
+    responsiveSources: makeResponsiveSources('crushed_pepper'),
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -377,6 +426,7 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Background,
     type: 'image',
     source: '/images/processing.jpg',
+    optimizedSources: { avif: '/images/optimized/processing.avif', webp: '/images/optimized/processing.webp' },
     preloadStage: 4,
     priority: 'normal',
     loadingStrategy: 'viewport',
@@ -388,6 +438,7 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/pepper.jpg',
+    optimizedSources: { avif: '/images/optimized/pepper.avif', webp: '/images/optimized/pepper.webp' },
     preloadStage: 3,
     priority: 'high',
     loadingStrategy: 'viewport',
@@ -399,6 +450,7 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Background,
     type: 'image',
     source: '/images/farmer-hands.jpg',
+    optimizedSources: { avif: '/images/optimized/farmer-hands.avif', webp: '/images/optimized/farmer-hands.webp' },
     preloadStage: 3,
     priority: 'high',
     loadingStrategy: 'viewport',

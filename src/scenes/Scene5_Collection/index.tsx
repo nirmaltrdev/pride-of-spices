@@ -2,11 +2,11 @@ import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { ProductOverlay, ProductData } from '../../components/ProductOverlay';
-import { scrollToPercent } from '../../core/lenisInstance';
+import { scrollToPixels } from '../../core/lenisInstance';
 import { CinematicImage } from '../../components/CinematicImage';
 import { Assets } from '../../core/assets/AssetManifest';
 
-/** The complete product catalogue — 13 Heritage Spices & Honey */
+/** The complete product catalogue — 12 Heritage Spices + 1 Featured Raw Forest Honey */
 const PRODUCTS: ProductData[] = [
   {
     id: 'black-pepper',
@@ -152,36 +152,29 @@ const PRODUCTS: ProductData[] = [
     image: Assets.spiceBlends,
     gallery: [],
   },
-  {
-    id: 'honey',
-    name: 'Pure Forest Honey',
-    origin: 'Deep Forests of Wayanad — Nilgiri Biosphere',
-    harvestStory:
-      'Sourced from the giant rock bees (Apis dorsata). Harvested by the Kattunayakan indigenous tribes using sustainable ancestral methods.',
-    craftsmanship:
-      'Raw, unfiltered, and unpasteurized. Each batch carries the unique floral signature of the seasonal forest bloom from which the bees feed.',
-    aroma: 'Deeply floral, earthy, and richly complex with a dark, resinous finish.',
-    image: Assets.forestHoney,
-    gallery: [],
-  },
 ];
+
+const HONEY_PRODUCT: ProductData = {
+  id: 'honey',
+  name: 'Pure Forest Honey',
+  origin: 'Deep Forests of Wayanad — Nilgiri Biosphere',
+  harvestStory:
+    'Sourced from the giant rock bees (Apis dorsata). Harvested by the Kattunayakan indigenous tribes using sustainable ancestral methods.',
+  craftsmanship:
+    'Raw, unfiltered, and unpasteurized. Each batch carries the unique floral signature of the seasonal forest bloom from which the bees feed.',
+  aroma: 'Deeply floral, earthy, and richly complex with a dark, resinous finish.',
+  image: Assets.forestHoney,
+  gallery: [],
+};
 
 /**
  * SCENE 5: THE COLLECTION — Single-Scroll Architecture
- *
- * This scene lives OUTSIDE the SceneManager sticky container so it occupies
- * real page flow. Its entry animations are driven by a dedicated ScrollTrigger
- * (not the master timeline), and Lenis is the single scroll controller.
- *
- * Animation budget (per project rules):
- *   Primary (2 max):  curtain fade-out + bg camera-focus-in
- *   Secondary (3 max): header reveal, card stagger, footer reveal
- *   Particle / overlay: light bloom
  */
 export function Scene5_Collection() {
   const prefersReducedMotion = useReducedMotion();
   const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [isHoneyHovered, setIsHoneyHovered] = useState(false);
 
   const sceneRef = useRef<HTMLElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
@@ -190,9 +183,7 @@ export function Scene5_Collection() {
   const gridRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const lightRef = useRef<HTMLDivElement>(null);
-  const curtainRef = useRef<HTMLDivElement>(null);
-  // revealTlRef bridges useLayoutEffect (where GSAP context lives) and
-  // useEffect (where IntersectionObserver triggers it).
+
   const revealTlRef = useRef<gsap.core.Timeline | null>(null);
 
   useLayoutEffect(() => {
@@ -203,46 +194,43 @@ export function Scene5_Collection() {
       const productItems = sel('[data-product-item]');
 
       // ── Initial States ──────────────────────────────────────────────────
-      gsap.set(curtainRef.current, { opacity: 0 });
-      gsap.set(bgRef.current, { scale: 1.0, filter: 'blur(0px)' });
+      gsap.set(bgRef.current, { scale: 1.0, opacity: 1 });
       gsap.set(lightRef.current, { opacity: 0.42, scale: 1.0 });
 
       if (prefersReducedMotion) {
-        gsap.set(curtainRef.current, { opacity: 0 });
         return;
       }
 
       // Set initial hidden states so elements don't flash before animation fires
-      gsap.set(headerRef.current, { opacity: 0, y: 32, filter: 'blur(6px)' });
+      gsap.set(headerRef.current, { opacity: 0, y: 32 });
       gsap.set(footerRef.current, { opacity: 0, y: 18 });
-      gsap.set(productItems, { opacity: 0, y: 45, filter: 'blur(6px)' });
+      gsap.set(productItems, { opacity: 0, y: 36 });
 
       // ── Real-time Reveal Timeline ───────────────────────────────────
       const revealTl = gsap.timeline({ paused: true });
 
       revealTl.fromTo(
         headerRef.current,
-        { opacity: 0, y: 32, scale: 0.96, filter: 'blur(6px)' },
-        { opacity: 1, y: 0, scale: 1.0, filter: 'blur(0px)', duration: 1.2, ease: 'power3.out' },
+        { opacity: 0, y: 32, scale: 0.97 },
+        { opacity: 1, y: 0, scale: 1.0, duration: 1.1, ease: 'power3.out' },
         0
       );
 
       revealTl.fromTo(
         productItems,
-        { opacity: 0, y: 45, scale: 0.94, filter: 'blur(6px)' },
+        { opacity: 0, y: 36, scale: 0.96 },
         {
           opacity: 1,
           y: 0,
           scale: 1,
-          filter: 'blur(0px)',
-          duration: 0.85,
-          stagger: { amount: 0.6, from: 'center', ease: 'power2.out' },
+          duration: 0.8,
+          stagger: { amount: 0.5, from: 'start', ease: 'power2.out' },
           ease: 'power3.out',
           onComplete: () => {
-            gsap.set(productItems, { clearProps: 'willChange,filter' });
+            gsap.set(productItems, { clearProps: 'willChange' });
           },
         },
-        0.35
+        0.3
       );
 
       revealTl.fromTo(
@@ -257,20 +245,15 @@ export function Scene5_Collection() {
             gsap.set(footerRef.current, { clearProps: 'willChange' });
           },
         },
-        1.1
+        1.0
       );
 
-      // Store in ref so IntersectionObserver useEffect can trigger it.
       revealTlRef.current = revealTl;
     }, sceneRef);
 
     return () => ctx.revert();
   }, [prefersReducedMotion]);
 
-  // ── IntersectionObserver: trigger reveal when section enters viewport ───
-  // Using IntersectionObserver instead of GSAP ScrollTrigger so we don't call
-  // ScrollTrigger.refresh() — which would disturb the master timeline scrub
-  // and cause earlier cinematic scenes to re-appear (BUG 3 fix).
   useEffect(() => {
     if (!sceneRef.current || prefersReducedMotion) return;
 
@@ -279,85 +262,51 @@ export function Scene5_Collection() {
 
     const sel = gsap.utils.selector(sceneRef);
 
-    // showFallback: snap all content to visible if IntersectionObserver or triggerReveal
-    // never fired. Defined first so it can be referenced by the 300ms fallback timer below.
     const showFallback = () => {
       if (fired) return;
       fired = true;
       const productItems = sel('[data-product-item]');
-      if (headerRef.current) gsap.set(headerRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 });
+      if (headerRef.current) gsap.set(headerRef.current, { opacity: 1, y: 0, scale: 1 });
       if (footerRef.current) gsap.set(footerRef.current, { opacity: 1, y: 0 });
-      if (productItems.length) gsap.set(productItems, { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 });
+      if (productItems.length) gsap.set(productItems, { opacity: 1, y: 0, scale: 1 });
     };
-
-    // ── Fallback: if observer never fires (fast scroll past, nav jump where element is
-    // already in viewport on mount), force-reveal after 300ms — not 2500ms.
-    // 300ms is enough time for the observer callback to fire naturally;
-    // if it hasn't by then we know the section is already visible and we reveal immediately.
-    const fallbackTimer = setTimeout(showFallback, 300);
 
     const triggerReveal = () => {
       if (fired) return;
       fired = true;
-      clearTimeout(fallbackTimer);
 
-      // Guard: if the component unmounted after the observer fired but
-      // before the callback runs, skip animations to avoid GSAP null-target warnings.
-      if (!bgRef.current || !lightRef.current || !curtainRef.current) {
+      if (!bgRef.current || !lightRef.current) {
         showFallback();
         return;
       }
 
-      // PRIMARY 1: camera focus-in
-      gsap.to(bgRef.current, { scale: 1.0, filter: 'blur(0px)', duration: 0.9, ease: 'power2.out' });
-
-      // SECONDARY: light bloom
+      gsap.to(bgRef.current, { scale: 1.0, duration: 0.9, ease: 'power2.out' });
       gsap.to(lightRef.current, { opacity: 0.42, scale: 1.15, duration: 1.0, ease: 'power2.out' });
-
-      // PRIMARY 2: curtain lift.
-      // Start revealTl partway through so cards begin appearing BEFORE curtain disappears
-      gsap.to(curtainRef.current, {
-        opacity: 0,
-        duration: 0.7,
-        ease: 'power2.inOut',
-        onStart: () => {
-          revealTlRef.current?.play();
-        },
-      });
+      revealTlRef.current?.play();
     };
 
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         if (entries[0].isIntersecting) {
           triggerReveal();
         }
       },
-      // threshold: 0 — fires as soon as ANY pixel of the section enters the viewport.
-      // rootMargin was previously '-50px 0px 0px 0px' which required the section to be
-      // 50px INSIDE the viewport before firing — on fast scroll this window could be
-      // missed entirely, leaving all content permanently at opacity:0.
       { threshold: 0 }
     );
 
     observer.observe(el);
 
-    // Immediate viewport check: when user nav-clicks to Collection, the section
-    // is already in the viewport before this effect runs. The IntersectionObserver
-    // fires once on .observe() but there is a micro-task delay before the callback.
-    // Check synchronously so nav-click arrivals never see a blank flash.
+    // Only fallback if the section is ACTUALLY already visible in the viewport
     const rect = el.getBoundingClientRect();
     const alreadyVisible = rect.top < window.innerHeight && rect.bottom > 0;
     if (alreadyVisible) {
-      // Tiny rAF delay to let GSAP context finish its setup from useLayoutEffect
       requestAnimationFrame(() => triggerReveal());
     }
 
     return () => {
       observer.disconnect();
-      clearTimeout(fallbackTimer);
     };
   }, [prefersReducedMotion]);
-
 
   return (
     <section
@@ -370,7 +319,7 @@ export function Scene5_Collection() {
       {/* ── BACKGROUND: Forest sunset ambience ── */}
       <div
         ref={bgRef}
-        className="absolute inset-0 origin-center will-change-transform pointer-events-none"
+        className="absolute inset-0 origin-center pointer-events-none"
       >
         <CinematicImage
           asset={Assets.sunsetBg}
@@ -384,20 +333,20 @@ export function Scene5_Collection() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'linear-gradient(to bottom, rgba(6,10,6,0.72) 0%, rgba(6,10,6,0.52) 45%, rgba(6,10,6,0.82) 100%)',
+            'linear-gradient(to bottom, rgba(3,7,3,0.85) 0%, rgba(3,7,3,0.60) 45%, rgba(3,7,3,0.92) 100%)',
         }}
       />
 
       {/* Cinematic vignette */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ boxShadow: 'inset 0 0 160px rgba(0,0,0,0.75)' }}
+        style={{ boxShadow: 'inset 0 0 160px rgba(0,0,0,0.85)' }}
       />
 
       {/* Ambient warm light bloom */}
       <div
         ref={lightRef}
-        className="absolute rounded-full pointer-events-none will-change-transform"
+        className="absolute rounded-full pointer-events-none"
         style={{
           top: '33%',
           left: '50%',
@@ -405,8 +354,8 @@ export function Scene5_Collection() {
           width: '90vmin',
           height: '90vmin',
           background:
-            'radial-gradient(circle, rgba(201,168,76,0.25) 0%, rgba(212,147,42,0.08) 50%, transparent 75%)',
-          filter: 'blur(100px)',
+            'radial-gradient(circle, rgba(201,168,76,0.22) 0%, rgba(212,147,42,0.06) 50%, transparent 75%)',
+          filter: 'blur(80px)',
         }}
       />
 
@@ -414,21 +363,19 @@ export function Scene5_Collection() {
       <div
         ref={headerOuterRef}
         style={{
-          paddingTop: 'clamp(5rem, 12vh, 10rem)',
-          paddingBottom: 'clamp(2.5rem, 5vh, 4rem)',
-          paddingLeft: 'clamp(1.5rem, 6vw, 6rem)',
-          paddingRight: 'clamp(1.5rem, 6vw, 6rem)',
+          paddingTop: 'clamp(5rem, 12vh, 9rem)',
+          paddingBottom: 'clamp(2rem, 4vh, 3.5rem)',
+          paddingLeft: 'clamp(1.25rem, 5vw, 4rem)',
+          paddingRight: 'clamp(1.25rem, 5vw, 4rem)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           textAlign: 'center',
-          overflow: 'hidden',
           width: '100%',
         }}
       >
         <div
           ref={headerRef}
-          className="will-change-transform"
           style={{
             maxWidth: '48rem',
             width: '100%',
@@ -446,7 +393,7 @@ export function Scene5_Collection() {
             style={{
               fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)',
               letterSpacing: '0.32em',
-              color: 'rgba(212,147,42,0.85)',
+              color: '#D4932A',
               marginBottom: '1.25rem',
               textAlign: 'center',
             }}
@@ -458,8 +405,8 @@ export function Scene5_Collection() {
           <h2
             className="font-serif text-cream"
             style={{
-              fontSize: 'clamp(2.8rem, 7vw, 6rem)',
-              lineHeight: 1.02,
+              fontSize: 'clamp(2.5rem, 6.5vw, 5.5rem)',
+              lineHeight: 1.05,
               letterSpacing: '-0.015em',
               textAlign: 'center',
               textWrap: 'balance',
@@ -470,10 +417,10 @@ export function Scene5_Collection() {
 
           {/* Subtitle */}
           <p
-            className="font-sans text-cream/60"
+            className="font-sans text-cream/70"
             style={{
-              fontSize: 'clamp(0.78rem, 1.5vw, 0.95rem)',
-              letterSpacing: '0.06em',
+              fontSize: 'clamp(0.85rem, 1.5vw, 1.05rem)',
+              letterSpacing: '0.04em',
               lineHeight: 1.65,
               marginTop: '1.25rem',
               maxWidth: '36rem',
@@ -482,14 +429,14 @@ export function Scene5_Collection() {
               marginRight: 'auto',
             }}
           >
-            Thirteen products. One origin. Centuries of craft.
+            Twelve heritage spices &amp; pure wild forest honey. One origin. Centuries of craft.
           </p>
 
           <span
             className="font-medium text-xs tracking-wider uppercase inline-block"
             style={{
-              color: 'rgba(212,147,42,0.85)',
-              marginTop: '0.75rem',
+              color: '#D4932A',
+              marginTop: '0.85rem',
               textAlign: 'center',
               letterSpacing: '0.14em',
             }}
@@ -504,25 +451,158 @@ export function Scene5_Collection() {
               width: '48px',
               height: '1px',
               background:
-                'linear-gradient(90deg, transparent, rgba(212,147,42,0.55), transparent)',
+                'linear-gradient(90deg, transparent, rgba(212,147,42,0.65), transparent)',
               margin: '2rem auto 0',
             }}
           />
         </div>
       </div>
 
-      {/* ── PRODUCT GRID ── */}
+      {/* ── FEATURED PRODUCT: Pure Forest Honey ── */}
       <div
         style={{
-          paddingLeft: 'clamp(1.25rem, 4vw, 4.5rem)',
-          paddingRight: 'clamp(1.25rem, 4vw, 4.5rem)',
+          paddingLeft: 'clamp(1rem, 4vw, 4rem)',
+          paddingRight: 'clamp(1rem, 4vw, 4rem)',
+          paddingBottom: 'clamp(1.5rem, 3vh, 2.5rem)',
+          maxWidth: '1480px',
+          margin: '0 auto',
+        }}
+      >
+        <div data-product-item className="w-full">
+          <div
+            onClick={() => setSelectedProduct(HONEY_PRODUCT)}
+            style={{
+              position: 'relative',
+              cursor: 'pointer',
+              overflow: 'hidden',
+              borderRadius: 'clamp(0.75rem, 1.5vw, 1.25rem)',
+              transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease',
+              transform: isHoneyHovered ? 'scale(1.012) translateY(-4px)' : 'scale(1) translateY(0)',
+              boxShadow: isHoneyHovered
+                ? '0 24px 60px rgba(0,0,0,0.7), 0 0 0 1.5px rgba(212,147,42,0.55)'
+                : '0 8px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(212,147,42,0.25)',
+              background: 'linear-gradient(135deg, rgba(20,28,21,0.92) 0%, rgba(8,12,8,0.96) 100%)',
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Explore Featured ${HONEY_PRODUCT.name} — ${HONEY_PRODUCT.origin}`}
+            onMouseEnter={() => setIsHoneyHovered(true)}
+            onMouseLeave={() => setIsHoneyHovered(false)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setSelectedProduct(HONEY_PRODUCT);
+              }
+            }}
+          >
+            <div className="flex flex-col md:flex-row items-center">
+              {/* Image side */}
+              <div
+                className="w-full md:w-1/2 relative overflow-hidden"
+                style={{ height: 'clamp(200px, 32vw, 360px)' }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    transition: 'transform 0.7s cubic-bezier(0.22,0.61,0.36,1)',
+                    transform: isHoneyHovered ? 'scale(1.06)' : 'scale(1.0)',
+                  }}
+                >
+                  <CinematicImage
+                    asset={HONEY_PRODUCT.image}
+                    className="w-full h-full"
+                    style={{ objectPosition: 'center', objectFit: 'cover' }}
+                  />
+                </div>
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(to right, transparent 60%, rgba(8,12,8,0.9) 100%), linear-gradient(to top, rgba(8,12,8,0.7) 0%, transparent 40%)',
+                  }}
+                />
+              </div>
+
+              {/* Text side */}
+              <div
+                className="w-full md:w-1/2 p-6 md:p-8 lg:p-10 flex flex-col justify-center"
+                style={{ gap: '0.85rem' }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="font-sans uppercase text-[11px] tracking-[0.24em] font-semibold px-2.5 py-1 rounded"
+                    style={{
+                      color: '#D4932A',
+                      background: 'rgba(212,147,42,0.15)',
+                      border: '1px solid rgba(212,147,42,0.35)',
+                    }}
+                  >
+                    Featured Allocation
+                  </span>
+                  <span className="font-sans text-xs text-cream/50 tracking-wider">
+                    Nilgiri Biosphere
+                  </span>
+                </div>
+
+                <h3
+                  className="font-serif text-cream"
+                  style={{ fontSize: 'clamp(1.6rem, 3.2vw, 2.4rem)', lineHeight: 1.1 }}
+                >
+                  {HONEY_PRODUCT.name}
+                </h3>
+
+                <p
+                  className="font-sans text-cream/70"
+                  style={{ fontSize: 'clamp(0.85rem, 1.4vw, 0.95rem)', lineHeight: 1.6 }}
+                >
+                  {HONEY_PRODUCT.harvestStory}
+                </p>
+
+                <div className="pt-2">
+                  <div
+                    className="inline-flex items-center gap-2 rounded-full font-semibold uppercase transition-all duration-300"
+                    style={{
+                      fontSize: '0.72rem',
+                      letterSpacing: '0.2em',
+                      color: isHoneyHovered ? '#FFFFFF' : '#FDF6EC',
+                      background: isHoneyHovered ? '#018039' : 'rgba(1,128,57,0.75)',
+                      border: '1px solid rgba(1,128,57,0.9)',
+                      padding: '0.45rem 1.15rem',
+                      boxShadow: isHoneyHovered ? '0 4px 16px rgba(1,128,57,0.4)' : 'none',
+                    }}
+                  >
+                    <span>Explore Tasting Notes &amp; Reserve</span>
+                    <span
+                      style={{
+                        transition: 'transform 0.3s ease',
+                        transform: isHoneyHovered ? 'translateX(4px)' : 'translateX(0)',
+                      }}
+                    >
+                      →
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 12-PRODUCT GRID (Balanced 4x3 Desktop, 2x6 Mobile) ── */}
+      <div
+        style={{
+          paddingLeft: 'clamp(1rem, 4vw, 4rem)',
+          paddingRight: 'clamp(1rem, 4vw, 4rem)',
           paddingBottom: 'clamp(4rem, 8vh, 6rem)',
+          maxWidth: '1480px',
+          margin: '0 auto',
         }}
       >
         <div
           ref={gridRef}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 w-full mx-auto"
-          style={{ gap: 'clamp(0.75rem, 1.5vw, 1.25rem)', maxWidth: '1480px' }}
+          className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 w-full"
+          style={{ gap: 'clamp(0.6rem, 1.5vw, 1.25rem)' }}
         >
           {PRODUCTS.map((product, idx) => {
             const isHovered = hoveredIdx === idx;
@@ -531,7 +611,7 @@ export function Scene5_Collection() {
               <div
                 key={product.id}
                 data-product-item
-                className="will-change-transform"
+                className="w-full"
               >
                 <div
                   onClick={() => setSelectedProduct(product)}
@@ -539,16 +619,14 @@ export function Scene5_Collection() {
                     position: 'relative',
                     cursor: 'pointer',
                     overflow: 'hidden',
-                    borderRadius: 'clamp(0.75rem, 1.5vw, 1.125rem)',
+                    borderRadius: 'clamp(0.6rem, 1.2vw, 1rem)',
                     aspectRatio: '4 / 5',
                     transition:
-                      'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.7s ease',
-                    transform: isHovered
-                      ? 'scale(1.022) translateY(-6px)'
-                      : 'scale(1) translateY(0)',
+                      'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease',
+                    transform: isHovered ? 'scale(1.02) translateY(-4px)' : 'scale(1) translateY(0)',
                     boxShadow: isHovered
-                      ? '0 28px 64px rgba(0,0,0,0.62), 0 0 0 1.5px rgba(212,147,42,0.48), 0 10px 28px rgba(212,147,42,0.06)'
-                      : '0 6px 22px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.04)',
+                      ? '0 20px 48px rgba(0,0,0,0.65), 0 0 0 1.5px rgba(212,147,42,0.5)'
+                      : '0 4px 16px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.06)',
                     WebkitTapHighlightColor: 'transparent',
                   }}
                   role="button"
@@ -568,18 +646,18 @@ export function Scene5_Collection() {
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      transition: 'transform 0.85s cubic-bezier(0.22,0.61,0.36,1)',
+                      transition: 'transform 0.75s cubic-bezier(0.22,0.61,0.36,1)',
                       transform: isHovered ? 'scale(1.08)' : 'scale(1.0)',
                     }}
                   >
                     <CinematicImage
                       asset={product.image}
                       className="w-full h-full"
-                      style={{ objectPosition: 'center' }}
+                      style={{ objectPosition: 'center', objectFit: 'cover' }}
                     />
                   </div>
 
-                  {/* Gold top-edge shimmer */}
+                  {/* Top gold line shimmer on hover */}
                   <div
                     aria-hidden="true"
                     style={{
@@ -590,22 +668,22 @@ export function Scene5_Collection() {
                       height: '1px',
                       pointerEvents: 'none',
                       background:
-                        'linear-gradient(90deg, transparent, rgba(212,147,42,0.72), transparent)',
+                        'linear-gradient(90deg, transparent, rgba(212,147,42,0.8), transparent)',
                       opacity: isHovered ? 1 : 0,
-                      transition: 'opacity 0.45s ease',
+                      transition: 'opacity 0.4s ease',
                     }}
                   />
 
-                  {/* Bottom gradient */}
+                  {/* Bottom contrast scrim */}
                   <div
                     aria-hidden="true"
                     style={{
                       position: 'absolute',
                       inset: 0,
                       background: isHovered
-                        ? 'linear-gradient(to top, rgba(6,10,6,0.94) 0%, rgba(6,10,6,0.22) 48%, transparent 100%)'
-                        : 'linear-gradient(to top, rgba(6,10,6,0.85) 0%, rgba(6,10,6,0.12) 42%, transparent 100%)',
-                      transition: 'background 0.8s ease',
+                        ? 'linear-gradient(to top, rgba(4,8,5,0.96) 0%, rgba(4,8,5,0.40) 50%, transparent 100%)'
+                        : 'linear-gradient(to top, rgba(4,8,5,0.90) 0%, rgba(4,8,5,0.25) 45%, transparent 100%)',
+                      transition: 'background 0.5s ease',
                     }}
                   />
 
@@ -616,56 +694,57 @@ export function Scene5_Collection() {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      padding: 'clamp(0.875rem, 2.2vw, 1.5rem)',
+                      padding: 'clamp(0.65rem, 1.8vw, 1.25rem)',
                       zIndex: 10,
                       pointerEvents: 'none',
-                      transition: 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)',
-                      transform: isHovered ? 'translateY(0)' : 'translateY(2px)',
                     }}
                   >
                     <h3
                       className="font-serif text-cream leading-tight drop-shadow-md"
                       style={{
-                        fontSize: 'clamp(0.95rem, 2.2vw, 1.45rem)',
-                        marginBottom: '0.65rem',
+                        fontSize: 'clamp(0.85rem, 1.8vw, 1.35rem)',
+                        marginBottom: '0.5rem',
                         textWrap: 'balance',
                       }}
                     >
                       {product.name}
                     </h3>
                     <div
-                      className="inline-flex items-center"
+                      className="inline-flex items-center gap-1.5 rounded-full uppercase transition-all duration-300"
                       style={{
-                        gap: '6px',
-                        fontSize: '0.62rem',
+                        fontSize: 'clamp(0.55rem, 1vw, 0.65rem)',
                         letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        color: isHovered ? '#FDF6EC' : 'rgba(212,147,42,0.92)',
-                        background: isHovered ? 'rgba(212,147,42,0.35)' : 'rgba(12,18,12,0.72)',
+                        color: '#FDF6EC',
+                        background: isHovered ? 'rgba(212,147,42,0.45)' : 'rgba(10,14,10,0.88)',
                         backdropFilter: 'blur(8px)',
-                        border: '1px solid rgba(212,147,42,0.45)',
-                        borderRadius: '9999px',
-                        padding: '0.3rem 0.85rem',
-                        transition: 'all 0.3s ease',
-                        boxShadow: isHovered ? '0 4px 12px rgba(212,147,42,0.3)' : 'none',
+                        border: '1px solid rgba(212,147,42,0.5)',
+                        padding: '0.25rem 0.75rem',
+                        boxShadow: isHovered ? '0 4px 14px rgba(212,147,42,0.3)' : 'none',
                       }}
                     >
-                      <span>Explore Details</span>
-                      <span style={{ transition: 'transform 0.3s ease', transform: isHovered ? 'translateX(3px)' : 'translateX(0)' }}>→</span>
+                      <span className="font-medium">Explore Details</span>
+                      <span
+                        style={{
+                          transition: 'transform 0.3s ease',
+                          transform: isHovered ? 'translateX(3px)' : 'translateX(0)',
+                        }}
+                      >
+                        →
+                      </span>
                     </div>
                   </div>
 
                   {/* Item number badge */}
                   <div
                     aria-hidden="true"
-                    className="absolute font-sans"
+                    className="absolute font-sans font-semibold"
                     style={{
-                      top: 'clamp(0.625rem, 1vw, 0.875rem)',
-                      right: 'clamp(0.625rem, 1vw, 0.875rem)',
-                      fontSize: '0.6rem',
+                      top: 'clamp(0.5rem, 1vw, 0.75rem)',
+                      right: 'clamp(0.5rem, 1vw, 0.75rem)',
+                      fontSize: '0.62rem',
                       letterSpacing: '0.15em',
-                      color: 'rgba(212,147,42,0.72)',
-                      opacity: isHovered ? 0 : 0.72,
+                      color: 'rgba(212,147,42,0.85)',
+                      opacity: isHovered ? 0 : 0.85,
                       transition: 'opacity 0.3s ease',
                     }}
                   >
@@ -683,8 +762,8 @@ export function Scene5_Collection() {
         ref={footerRef}
         className="flex flex-col items-center justify-center text-center"
         style={{
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          padding: 'clamp(3.5rem, 7vh, 6rem) clamp(1.5rem, 6vw, 4rem)',
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          padding: 'clamp(3.5rem, 7vh, 6rem) clamp(1.25rem, 5vw, 4rem)',
           gap: 'clamp(2rem, 4vh, 3rem)',
         }}
       >
@@ -708,8 +787,8 @@ export function Scene5_Collection() {
             Natural Wayanadan Spices at Your Doorstep
           </h3>
           <p
-            className="font-sans text-cream/55 mt-3"
-            style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)', letterSpacing: '0.04em' }}
+            className="font-sans text-cream/70 mt-3"
+            style={{ fontSize: 'clamp(0.85rem, 1.5vw, 1rem)', letterSpacing: '0.04em' }}
           >
             Freshly harvested, traditional grade spices &amp; pure forest honey delivered directly to your home.
           </p>
@@ -717,9 +796,9 @@ export function Scene5_Collection() {
 
         {/* Closing editorial quote */}
         <p
-          className="font-serif text-cream/45 italic text-center mx-auto"
+          className="font-serif text-cream/60 italic text-center mx-auto"
           style={{
-            fontSize: 'clamp(0.95rem, 2vw, 1.35rem)',
+            fontSize: 'clamp(1rem, 2vw, 1.35rem)',
             lineHeight: 1.65,
             maxWidth: '38rem',
             textWrap: 'balance',
@@ -727,7 +806,7 @@ export function Scene5_Collection() {
         >
           "From the forests of Wayanad to your table —
           <br />
-          <span style={{ color: 'rgba(212,147,42,0.65)' }}>
+          <span style={{ color: '#D4932A' }}>
             uncompromised, unadulterated, unchanged."
           </span>
         </p>
@@ -750,13 +829,13 @@ export function Scene5_Collection() {
             >
               <div
                 className="font-serif text-gold leading-none"
-                style={{ fontSize: 'clamp(1.4rem, 3vw, 2.1rem)' }}
+                style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)' }}
               >
                 {stat.num}
               </div>
               <div
-                className="font-sans text-cream/35 uppercase"
-                style={{ fontSize: 'clamp(0.56rem, 0.9vw, 0.65rem)', letterSpacing: '0.2em' }}
+                className="font-sans text-cream/60 uppercase font-medium"
+                style={{ fontSize: 'clamp(0.6rem, 0.9vw, 0.7rem)', letterSpacing: '0.2em' }}
               >
                 {stat.label}
               </div>
@@ -790,9 +869,9 @@ export function Scene5_Collection() {
             href="#"
             onClick={e => {
               e.preventDefault();
-              scrollToPercent(0);
+              scrollToPixels(0);
             }}
-            className="font-sans text-cream/40 hover:text-gold text-xs tracking-widest uppercase transition-colors mt-2"
+            className="font-sans text-cream/60 hover:text-gold text-xs tracking-widest uppercase transition-colors mt-2"
           >
             Return to Top ↑
           </a>
@@ -800,9 +879,9 @@ export function Scene5_Collection() {
 
         {/* Copyright */}
         <p
-          className="font-sans text-cream/20 text-center"
+          className="font-sans text-cream/50 text-center"
           style={{
-            fontSize: '0.68rem',
+            fontSize: '0.72rem',
             letterSpacing: '0.12em',
             paddingBottom: 'max(0px, env(safe-area-inset-bottom))',
           }}

@@ -544,13 +544,19 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                   className="font-serif text-cream"
                   style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', marginBottom: '1rem' }}
                 >
-                  Inquiry Received
+                  Email Draft Prepared
                 </h2>
                 <p
-                  className="font-sans text-cream/70 leading-relaxed"
-                  style={{ fontSize: 'clamp(0.82rem, 1.5vw, 0.95rem)', maxWidth: '360px' }}
+                  className="font-sans text-cream/75 leading-relaxed"
+                  style={{ fontSize: 'clamp(0.85rem, 1.5vw, 0.98rem)', maxWidth: '380px' }}
                 >
-                  Thank you for your interest in {product.name}. Your request has been formatted for <span className="text-gold">theprideofspices12@gmail.com</span>. We will respond promptly.
+                  Your reservation request for {product.name} has been formatted and opened in your email client addressed to <span className="text-gold font-medium">theprideofspices12@gmail.com</span>.
+                </p>
+                <p
+                  className="font-sans text-cream/55 text-xs mt-3 leading-relaxed"
+                  style={{ maxWidth: '360px' }}
+                >
+                  Please press send in your email app, or reach out directly on WhatsApp for instant confirmation.
                 </p>
                 <button
                   onClick={handleClose}

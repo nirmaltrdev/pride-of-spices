@@ -1,18 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { AssetDefinition } from '@/core/assets/AssetManifest';
-
-// NOTE: ScrollTrigger.refresh() is intentionally NOT called on image load.
-//
-// Calling refresh() on each lazy image load causes a full ScrollTrigger reset:
-// the engine seeks every timeline back to position 0 (initial state = opacity:0 /
-// visibility:hidden for all scenes), measures layout, then re-scrubs to the current
-// scroll position. With 20+ lazy-loaded images on this page, each one loading while
-// the user is scrolling caused a visible blank flash across ALL scenes simultaneously.
-//
-// The Preloader calls ScrollTrigger.refresh() exactly once after all stage-1 assets
-// are loaded and the page has settled — that single call is sufficient. All scene
-// containers are position:absolute inside a sticky viewport, so lazy images loading
-// later do not change the scroll height or bounds that ScrollTrigger needs to track.
 
 interface CinematicImageProps {
   asset: AssetDefinition;
@@ -24,13 +11,13 @@ interface CinematicImageProps {
 }
 
 /**
- * CINEMATIC IMAGE — Version 3 (Production Polish)
+ * CINEMATIC IMAGE — Version 4 (Responsive Picture & Zero Jank)
  *
  * A smart image wrapper that handles:
  * - Progressive loading with smooth opacity fade
- * - AVIF/WebP format negotiation via <picture>
- * - Graceful error fallback (dark placeholder)
- * - Lazy vs eager loading based on asset priority
+ * - Instant opacity: 1 for already-cached or complete images
+ * - Responsive 480w/800w/1200w srcSet negotiation via <picture>
+ * - Native AVIF/WebP fallback
  * - Prevention of accidental drag and text selection
  * - Correct object-cover applied to the <img>, not the <picture> wrapper
  */
@@ -40,12 +27,20 @@ export function CinematicImage({
   style = {},
   onLoad,
   onError,
-  sizes = '100vw',
+  sizes = '(max-width: 640px) 480px, (max-width: 1024px) 800px, 1200px',
 }: CinematicImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  const fetchPriority = asset.priority === 'critical' ? 'high' : asset.priority === 'low' ? 'low' : 'auto';
+  useLayoutEffect(() => {
+    if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  const fetchPriority =
+    asset.priority === 'critical' ? 'high' : asset.priority === 'low' ? 'low' : 'auto';
   const loadingAttr = asset.loadingStrategy === 'eager' ? 'eager' : 'lazy';
 
   const handleLoad = () => {
@@ -73,26 +68,25 @@ export function CinematicImage({
   const isDecorative = !asset.altText;
 
   return (
-    /**
-     * The <picture> element acts purely as a container. Sizing classes (w-full, h-full)
-     * should be on this wrapper. The object-cover/object-position is on the <img> inside.
-     * This is the correct semantic structure per MDN spec.
-     *
-     * background: '#030703' is the dark forest base. This ensures that during image load
-     * (opacity: 0 on <img>) and for PNG assets with transparent regions, no browser
-     * checkerboard ever shows. Transparent pixels render against this solid dark base.
-     */
     <picture
       className={`block overflow-hidden relative ${className}`}
       style={{ background: '#030703', ...style }}
     >
-      {asset.optimizedSources?.avif && (
+      {/* 1. Responsive Multi-width Sources if defined (480w / 800w / 1200w) */}
+      {asset.responsiveSources?.map(src => (
+        <source key={src.type} type={src.type} srcSet={src.srcSet} sizes={sizes} />
+      ))}
+
+      {/* 2. Fallback single optimized sources */}
+      {!asset.responsiveSources && asset.optimizedSources?.avif && (
         <source type="image/avif" srcSet={asset.optimizedSources.avif} sizes={sizes} />
       )}
-      {asset.optimizedSources?.webp && (
+      {!asset.responsiveSources && asset.optimizedSources?.webp && (
         <source type="image/webp" srcSet={asset.optimizedSources.webp} sizes={sizes} />
       )}
+
       <img
+        ref={imgRef}
         src={asset.source}
         alt={asset.altText || ''}
         role={isDecorative ? 'presentation' : undefined}

@@ -53,7 +53,12 @@ export function Preloader({ onComplete }: PreloaderProps) {
         // before refreshing ScrollTrigger bounds. Too early causes wrong scroll heights.
         setTimeout(() => {
           onComplete();
-          setTimeout(() => ScrollTrigger.refresh(), 200);
+          setTimeout(() => {
+            ScrollTrigger.refresh();
+            // Warm-load product catalogue in the background so grid cards are cached ahead of scroll
+            AssetLoader.preloadStage(3);
+            setTimeout(() => AssetLoader.preloadStage(5), 1000);
+          }, 200);
         }, 750);
       }, 450);
     });

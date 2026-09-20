@@ -1,164 +1,188 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { scrollToPercent, pauseLenis, resumeLenis, getLenisInstance } from '../core/lenisInstance';
+import {
+  scrollToScene,
+  scrollToPixels,
+  pauseLenis,
+  resumeLenis,
+} from '../core/lenisInstance';
+import { getActiveSceneFromProgress } from '../core/sceneRegistry';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 /**
- * CINEMATIC NAV — Version 3 (Production Polish)
+ * CINEMATIC NAV — Version 4 (Single-Engine Architectural Rewrite)
  *
- * Key improvements over v2:
- * 1. Scene progress dots now use `scaleX` (GPU-only) instead of width transitions
- *    — eliminates layout shifts when dot expands from 4px to 16px.
- * 2. All dot containers have a fixed width (16px), so siblings never shift.
- * 3. Mobile hamburger lines have `min-height: 44px` container for WCAG touch targets.
- * 4. Mobile menu sets `aria-hidden` when closed to hide from AT.
- * 5. Hover underline on desktop uses `scaleX` for GPU compositing.
+ * Requirements fulfilled:
+ * 1. Persistent top navigation: Always rendered from load. Transparent on hero fold,
+ *    transitions smoothly to frosted dark green once scrolling begins.
+ * 2. Progress bar: Driven via GSAP quickSetter without triggering 60fps React state re-renders.
+ * 3. Active scenes & link navigation: Single source of truth from sceneRegistry.
+ * 4. Luxury Concierge Enquire: Accessible dropdown toggle with real button semantics,
+ *    aria-haspopup="dialog", aria-expanded, keyboard Esc support, outside-click close.
+ * 5. Cinematic Auto Tour: Uses sceneRegistry hold points, sequentially visits scenes with
+ *    luxurious 2-3s travel and 4-5s dwell, aborts immediately on ANY user input.
  */
 
-interface NavLink {
-  label: string;
-  pct: number;
-  scene: string;
-}
-
-const NAV_LINKS: NavLink[] = [
-  { label: 'The Forest', pct: 0.18, scene: '02' },
-  { label: 'The Discovery', pct: 0.32, scene: '03' },
-  { label: 'The Harvest', pct: 0.58, scene: '04' },
-  { label: 'Wild Honey', pct: 0.73, scene: '4.5' },
-  { label: 'Collection', pct: 0.88, scene: '05' },
+const NAV_LINKS = [
+  { label: 'The Forest', sceneId: 'forest' },
+  { label: 'The Discovery', sceneId: 'discovery' },
+  { label: 'The Harvest', sceneId: 'harvest' },
+  { label: 'Wild Honey', sceneId: 'honey' },
+  { label: 'Collection', sceneId: 'collection' },
 ];
 
 export function CinematicNav() {
-  const [visible, setVisible] = useState(false);
-  const [scrollPct, setScrollPct] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeScene, setActiveScene] = useState<number>(-1);
+  const [enquireOpen, setEnquireOpen] = useState(false);
+  const [activeSceneIdx, setActiveSceneIdx] = useState(0);
+
   const navRef = useRef<HTMLElement>(null);
-  const prevVisibleRef = useRef(false);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autoPlayRafRef = useRef<number | null>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const enquireMenuRef = useRef<HTMLDivElement>(null);
+  const autoTourAbortRef = useRef<(() => void) | null>(null);
 
-  const getActiveScene = useCallback((pct: number): number => {
-    // Thresholds are the MIDPOINTS between snap points, so the active scene switches
-    // exactly halfway through each crossfade — feels natural and avoids flicker.
-    if (pct >= 0.81) return 4; // Scene 5: Collection (halfway between 0.73 and 0.88)
-    if (pct >= 0.66) return 3; // Wild Honey (halfway between 0.58 and 0.73)
-    if (pct >= 0.45) return 2; // The Harvest (halfway between 0.32 and 0.58)
-    if (pct >= 0.25) return 1; // The Discovery (halfway between 0.18 and 0.32)
-    if (pct >= 0.09) return 0; // The Forest (halfway between 0.0 and 0.18)
-    return -1; // Scene1 / hero (before nav shows)
+  // ── 1. High-Performance Progress Bar & Active Scene Detection ───
+  useEffect(() => {
+    // QuickSetter directly mutates scaleX on the progress bar (GPU accelerated, 0 React re-renders)
+    const setProgressScale = progressBarRef.current
+      ? gsap.quickSetter(progressBarRef.current, 'scaleX')
+      : null;
+
+    let lastIdx = -1;
+
+    const onScrollUpdate = () => {
+      const scrollY = window.scrollY;
+      const scrolled = scrollY > 40;
+      setIsScrolled(prev => (prev !== scrolled ? scrolled : prev));
+
+      // Calculate master timeline progress
+      const st = ScrollTrigger.getById('master-scroll-trigger');
+      let progress = 0;
+      if (st && st.end > st.start) {
+        progress = Math.max(0, Math.min(1, (scrollY - st.start) / (st.end - st.start)));
+      } else {
+        const total = document.documentElement.scrollHeight - window.innerHeight;
+        progress = total > 0 ? Math.max(0, Math.min(1, scrollY / total)) : 0;
+      }
+
+      if (setProgressScale) {
+        setProgressScale(progress);
+      }
+
+      const activeIdx = getActiveSceneFromProgress(progress);
+      if (activeIdx !== lastIdx) {
+        lastIdx = activeIdx;
+        setActiveSceneIdx(activeIdx);
+      }
+    };
+
+    window.addEventListener('scroll', onScrollUpdate, { passive: true });
+    onScrollUpdate(); // Initial check
+
+    return () => {
+      window.removeEventListener('scroll', onScrollUpdate);
+    };
   }, []);
 
-  const toggleAutoPlay = useCallback(() => {
-    setIsAutoPlaying(prev => !prev);
-  }, []);
-
-  // Smooth Auto-Scroll — uses Lenis scrollTo to avoid bypassing the smooth scroll engine
+  // ── 2. Cinematic Auto Tour ───
   useEffect(() => {
     if (!isAutoPlaying) {
-      if (autoPlayRafRef.current) cancelAnimationFrame(autoPlayRafRef.current);
+      if (autoTourAbortRef.current) {
+        autoTourAbortRef.current();
+        autoTourAbortRef.current = null;
+      }
       return;
     }
 
-    let lastTime = performance.now();
-    // ~40px/sec — slow cinematic auto-tour pace
-    const scrollSpeed = 0.65;
+    let isAborted = false;
+    let tourTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    const step = (now: number) => {
-      const delta = Math.min(32, now - lastTime);
-      lastTime = now;
+    const abortTour = () => {
+      if (isAborted) return;
+      isAborted = true;
+      if (tourTimeout) clearTimeout(tourTimeout);
+      setIsAutoPlaying(false);
+    };
 
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const currentY = window.scrollY;
+    autoTourAbortRef.current = abortTour;
 
-      if (currentY >= maxScroll - 5) {
-        setIsAutoPlaying(false);
+    // Tour sequence through key scenes
+    const tourSequence = ['forest', 'discovery', 'harvest', 'honey', 'collection'];
+    let currentStep = 0;
+
+    const runStep = () => {
+      if (isAborted) return;
+
+      if (currentStep >= tourSequence.length) {
+        // Finished tour, return to top after brief pause
+        tourTimeout = setTimeout(() => {
+          if (!isAborted) {
+            scrollToPixels(0, false, 2.5);
+            setIsAutoPlaying(false);
+          }
+        }, 5000);
         return;
       }
 
-      const targetY = Math.min(maxScroll, currentY + (scrollSpeed * delta) / 16);
-      const lenis = getLenisInstance();
-      if (lenis) {
-        // Use Lenis.scrollTo to keep the smooth-scroll engine in sync
-        lenis.scrollTo(targetY, { immediate: true });
-      } else {
-        window.scrollTo(0, targetY);
-      }
-      autoPlayRafRef.current = requestAnimationFrame(step);
+      const nextSceneId = tourSequence[currentStep];
+      // Travel duration 2.4s
+      scrollToScene(nextSceneId, false, 2.4);
+
+      currentStep++;
+      // Dwell for 5.0s before moving to the next stop
+      tourTimeout = setTimeout(runStep, 5400);
     };
 
-    autoPlayRafRef.current = requestAnimationFrame(step);
+    // Start first step after a gentle pause
+    tourTimeout = setTimeout(runStep, 600);
 
-    // Pause auto-tour on any user interaction
-    const stopOnUserAction = () => setIsAutoPlaying(false);
-    window.addEventListener('wheel', stopOnUserAction, { passive: true, once: true });
-    window.addEventListener('touchstart', stopOnUserAction, { passive: true, once: true });
+    // Abort tour on any human interaction (wheel, touch, keydown)
+    const onUserInteract = () => {
+      abortTour();
+    };
+
+    window.addEventListener('wheel', onUserInteract, { passive: true, once: true });
+    window.addEventListener('touchstart', onUserInteract, { passive: true, once: true });
+    window.addEventListener('keydown', onUserInteract, { once: true });
 
     return () => {
-      if (autoPlayRafRef.current) cancelAnimationFrame(autoPlayRafRef.current);
-      window.removeEventListener('wheel', stopOnUserAction);
-      window.removeEventListener('touchstart', stopOnUserAction);
+      isAborted = true;
+      if (tourTimeout) clearTimeout(tourTimeout);
+      window.removeEventListener('wheel', onUserInteract);
+      window.removeEventListener('touchstart', onUserInteract);
+      window.removeEventListener('keydown', onUserInteract);
     };
   }, [isAutoPlaying]);
 
+  // ── 3. Close Menus on Escape or Click Outside ───
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      // FIXED: Use SceneManager height (800vh) as the reference for all cinematic nav state.
-      // Previously mixed two different denominators:
-      //   - pct used 800vh (cinematicMaxScroll) for scene detection
-      //   - scrollPct used full document height for the progress bar
-      // This mismatch made the progress bar reach 100% before Collection was visible.
-      // Now both use 800vh so scene dots, active labels, and progress bar all match.
-      const sceneManagerScrollPx = window.innerHeight * 8.0; // 800vh
-      const pct = sceneManagerScrollPx > 0 ? Math.min(1, scrollY / sceneManagerScrollPx) : 0;
-
-      setScrollPct(pct); // progress bar uses same cinematic range
-      setVisible(pct > 0.12);
-      setActiveScene(getActiveScene(pct));
-
-      setIsScrolling(true);
-      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
-      scrollTimerRef.current = setTimeout(() => setIsScrolling(false), 180);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+        setEnquireOpen(false);
+      }
     };
 
-    // Use native window scroll: Lenis dispatches real scroll events to window,
-    // so this works correctly on both desktop (Lenis-driven) and mobile (native).
-    // This removes the fragile getLenisInstance() timing dependency.
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const onClickOutside = (e: MouseEvent) => {
+      if (
+        enquireMenuRef.current &&
+        !enquireMenuRef.current.contains(e.target as Node)
+      ) {
+        setEnquireOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onClickOutside);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      window.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mousedown', onClickOutside);
     };
-  }, [getActiveScene]);
-
-
-  // Animate nav in/out with GSAP — GPU-accelerated
-  useEffect(() => {
-    if (!navRef.current) return;
-    if (visible === prevVisibleRef.current) return;
-    prevVisibleRef.current = visible;
-
-    gsap.to(navRef.current, {
-      y: visible ? 0 : -80,
-      opacity: visible ? 1 : 0,
-      duration: 0.65,
-      ease: 'power2.inOut',
-    });
-  }, [visible]);
-
-  // Close mobile menu on ESC
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Prevent body scroll when mobile menu is open.
+  // Lock scroll when mobile drawer is open
   useEffect(() => {
     if (mobileOpen) {
       pauseLenis();
@@ -168,86 +192,60 @@ export function CinematicNav() {
     }
   }, [mobileOpen]);
 
-  const scrollToPct = useCallback((pct: number) => {
-    if (pct >= 0.88) {
-      // For Collection: scroll directly to the Scene5 element in page flow
-      const collectionEl = document.getElementById('collection');
-      if (collectionEl) {
-        const lenis = getLenisInstance();
-        const top = collectionEl.getBoundingClientRect().top + window.scrollY;
-        if (lenis) {
-          lenis.scrollTo(top, { duration: 1.4, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-        } else {
-          window.scrollTo({ top, behavior: 'smooth' });
-        }
-        setMobileOpen(false);
-        return;
-      }
-    }
-
-    // FIXED: masterTimeline positions (0.0–1.0) are relative to SceneManager height (800vh),
-    // NOT the total document scroll height. Previously scrollToPercent(pct) used
-    // (total document scrollHeight - window.innerHeight) which includes Scene5_Collection
-    // page section (~250-300vh), causing every nav link to land 30-40% too far into the page.
-    //
-    // Correct formula: target = pct * SceneManager_height
-    //   SceneManager = 800vh
-    const sceneManagerScrollPx = window.innerHeight * 8.0; // 800vh total
-    const targetPx = Math.round(pct * sceneManagerScrollPx);
-
-    const lenis = getLenisInstance();
-    if (lenis) {
-      lenis.scrollTo(targetPx, { duration: 1.4, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-    } else {
-      window.scrollTo({ top: targetPx, behavior: 'smooth' });
-    }
+  const handleNavClick = useCallback((sceneId: string) => {
+    if (isAutoPlaying) setIsAutoPlaying(false);
     setMobileOpen(false);
-  }, []);
-
+    setEnquireOpen(false);
+    scrollToScene(sceneId);
+  }, [isAutoPlaying]);
 
   return (
     <>
       <nav
         ref={navRef}
-        className="fixed top-0 left-0 right-0 z-[100] will-change-transform"
-        style={{ transform: 'translateY(-80px)', opacity: 0, pointerEvents: visible ? 'auto' : 'none' }}
+        className="fixed top-0 left-0 right-0 z-[100] transition-colors duration-500 will-change-transform"
         role="navigation"
         aria-label="Main navigation"
         id="main-nav"
       >
-        {/* Scroll Progress Bar — brand green */}
+        {/* Scroll Progress Bar — brand green (transform GPU scaleX, 0 layout shifts) */}
         <div
           aria-hidden="true"
-          className="absolute bottom-0 left-0 h-[1.5px] pointer-events-none"
-          style={{
-            width: `${scrollPct * 100}%`,
-            background: 'linear-gradient(90deg, rgba(1,128,57,0.0) 0%, rgba(1,128,57,0.9) 100%)',
-            transition: 'width 0.12s linear',
-          }}
-        />
+          className="absolute bottom-0 left-0 right-0 h-[1.5px] pointer-events-none bg-black/30"
+        >
+          <div
+            ref={progressBarRef}
+            className="h-full w-full origin-left"
+            style={{
+              transform: 'scaleX(0)',
+              background:
+                'linear-gradient(90deg, rgba(1,128,57,0.3) 0%, rgba(1,128,57,1.0) 100%)',
+            }}
+          />
+        </div>
 
-        {/* Nav Bar Body — padded to account for Dynamic Island / notch via safe-area-inset-top */}
+        {/* Nav Bar Body */}
         <div
-          className="flex items-center justify-between"
+          className="flex items-center justify-between transition-all duration-500"
           style={{
             paddingLeft: 'clamp(1.25rem, 4vw, 3.5rem)',
             paddingRight: 'clamp(1.25rem, 4vw, 3.5rem)',
             paddingTop: 'max(0px, env(safe-area-inset-top))',
-            // Height expands when there is a safe-area inset (notch devices)
-            minHeight: 'calc(56px + env(safe-area-inset-top))',
-            background: isScrolling ? 'rgba(6,10,6,0.92)' : 'rgba(8,12,8,0.78)',
-            backdropFilter: isScrolling ? 'blur(32px) saturate(1.4)' : 'blur(20px) saturate(1.2)',
-            WebkitBackdropFilter: isScrolling ? 'blur(32px) saturate(1.4)' : 'blur(20px) saturate(1.2)',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-            transition: 'background 0.3s ease, backdrop-filter 0.3s ease',
+            minHeight: 'calc(58px + env(safe-area-inset-top))',
+            background: isScrolled ? 'rgba(6,10,6,0.92)' : 'rgba(3,7,3,0.35)',
+            backdropFilter: isScrolled ? 'blur(28px) saturate(1.4)' : 'blur(8px)',
+            WebkitBackdropFilter: isScrolled ? 'blur(28px) saturate(1.4)' : 'blur(8px)',
+            borderBottom: isScrolled
+              ? '1px solid rgba(212,147,42,0.18)'
+              : '1px solid rgba(255,255,255,0.06)',
           }}
         >
           {/* Brand Wordmark with logo mark */}
           <button
-            onClick={() => scrollToPct(0)}
-            className="font-serif hover:opacity-90 transition-opacity duration-300"
+            onClick={() => handleNavClick('arrival')}
+            className="font-serif hover:opacity-90 transition-opacity duration-300 group"
             style={{
-              fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
+              fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
               letterSpacing: '0.02em',
               background: 'none',
               border: 'none',
@@ -256,238 +254,279 @@ export function CinematicNav() {
               minHeight: '44px',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.6rem',
-              color: 'rgba(242,249,245,0.88)',
+              gap: '0.65rem',
+              color: '#F2F9F5',
             }}
-            aria-label="Return to beginning"
+            aria-label="The Pride of Spices - Return to beginning"
           >
-            {/* Official P-leaf logo mark */}
             <img
               src="/images/logo.svg"
               alt=""
               aria-hidden="true"
               style={{
-                width: 'clamp(22px, 3.5vw, 30px)',
+                width: 'clamp(24px, 3.5vw, 30px)',
                 height: 'auto',
-                filter: 'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
-                opacity: 0.85,
+                filter:
+                  'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
+                opacity: 0.95,
                 flexShrink: 0,
               }}
             />
-            The Pride{' '}
-            <span className="italic" style={{ color: '#018039', marginLeft: '0.18em' }}>of Spices</span>
+            <span>
+              The Pride{' '}
+              <span className="italic" style={{ color: '#018039', marginLeft: '0.18em' }}>
+                of Spices
+              </span>
+            </span>
           </button>
 
-          {/* Desktop Nav Links + Scene Progress Dots */}
+          {/* Desktop Nav Links + Progress Indicators */}
           <div className="hidden md:flex items-center" style={{ gap: 'clamp(1rem, 2vw, 1.75rem)' }}>
-            {/* 
-              Scene progress dots: each dot has a FIXED 16px container.
-              The inner pill uses scaleX(1) ↔ scaleX(0.25) to animate
-              between 16px (active) and 4px (inactive) — zero layout shift.
-            */}
+            {/* Scene progress dots */}
             <div className="flex items-center" style={{ gap: '6px' }} aria-hidden="true">
-              {NAV_LINKS.map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: '16px',
-                    height: '4px',
-                    overflow: 'hidden',
-                    borderRadius: '9999px',
-                    flexShrink: 0,
-                  }}
-                >
+              {NAV_LINKS.map((link, i) => {
+                const isCurrent = activeSceneIdx === i + 1;
+                const isPassed = activeSceneIdx > i + 1;
+                return (
                   <div
+                    key={link.sceneId}
                     style={{
-                      width: '100%',
-                      height: '100%',
+                      width: '16px',
+                      height: '4px',
+                      overflow: 'hidden',
                       borderRadius: '9999px',
-                      transformOrigin: 'left center',
-                      transform: activeScene === i ? 'scaleX(1)' : 'scaleX(0.25)',
-                      background: activeScene === i
-                        ? 'rgba(1,128,57,0.95)'
-                        : activeScene > i
-                          ? 'rgba(1,128,57,0.42)'
-                          : 'rgba(255,255,255,0.18)',
-                      transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.45s ease',
+                      flexShrink: 0,
                     }}
-                  />
-                </div>
-              ))}
+                  >
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '9999px',
+                        transformOrigin: 'left center',
+                        transform: isCurrent ? 'scaleX(1)' : 'scaleX(0.25)',
+                        background: isCurrent
+                          ? '#018039'
+                          : isPassed
+                            ? 'rgba(1,128,57,0.48)'
+                            : 'rgba(255,255,255,0.22)',
+                        transition:
+                          'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 0.45s ease',
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
 
-            {NAV_LINKS.map((link, i) => (
-              <button
-                key={link.label}
-                onClick={() => scrollToPct(link.pct)}
-                className="font-sans relative group"
-                style={{
-                  fontSize: 'clamp(0.65rem, 1.2vw, 0.75rem)',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: activeScene === i ? 'rgba(1,128,57,0.98)' : 'rgba(242,249,245,0.45)',
-                  transition: 'color 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                  padding: '8px 0',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  minHeight: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                aria-current={activeScene === i ? 'true' : undefined}
-              >
-                {link.label}
-                {/* Active underline — scaleX from left (GPU only) */}
-                <span
-                  className="absolute -bottom-0.5 left-0 h-[1px] w-full"
+            {NAV_LINKS.map((link, i) => {
+              const isCurrent = activeSceneIdx === i + 1;
+              return (
+                <button
+                  key={link.sceneId}
+                  onClick={() => handleNavClick(link.sceneId)}
+                  className="font-sans relative group"
                   style={{
-                    background: 'rgba(1,128,57,0.75)',
-                    transformOrigin: 'left',
-                    transform: activeScene === i ? 'scaleX(1)' : 'scaleX(0)',
-                    transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+                    fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)',
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color: isCurrent ? '#018039' : 'rgba(242,249,245,0.72)',
+                    transition: 'color 0.3s ease',
+                    padding: '8px 0',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    fontWeight: isCurrent ? 600 : 500,
                   }}
-                  aria-hidden="true"
-                />
-              </button>
-            ))}
+                  aria-current={isCurrent ? 'page' : undefined}
+                >
+                  {link.label}
+                  <span
+                    className="absolute -bottom-0.5 left-0 h-[1.5px] w-full"
+                    style={{
+                      background: '#018039',
+                      transformOrigin: 'left',
+                      transform: isCurrent ? 'scaleX(1)' : 'scaleX(0)',
+                      transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                    }}
+                    aria-hidden="true"
+                  />
+                </button>
+              );
+            })}
           </div>
 
-          {/* Auto Play Presentation & WhatsApp CTA */}
+          {/* Auto Tour & Enquire Concierge */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Auto Tour Toggle */}
             <button
-              onClick={toggleAutoPlay}
+              onClick={() => setIsAutoPlaying(prev => !prev)}
               className="inline-flex items-center font-sans transition-all duration-300 cursor-pointer"
               style={{
-                fontSize: 'clamp(0.62rem, 1.1vw, 0.72rem)',
+                fontSize: 'clamp(0.65rem, 1.1vw, 0.74rem)',
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: isAutoPlaying ? '#10B981' : 'rgba(253,246,236,0.7)',
-                background: isAutoPlaying ? 'rgba(16,185,129,0.12)' : 'transparent',
-                border: isAutoPlaying ? '1px solid rgba(16,185,129,0.6)' : '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '2px',
-                padding: '0.5rem 1rem',
-                minHeight: '36px',
-                gap: '6px',
+                color: isAutoPlaying ? '#10B981' : '#FDF6EC',
+                background: isAutoPlaying ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.06)',
+                border: isAutoPlaying ? '1px solid #10B981' : '1px solid rgba(255,255,255,0.22)',
+                borderRadius: '3px',
+                padding: '0.5rem 1.1rem',
+                minHeight: '38px',
+                gap: '8px',
               }}
-              title={isAutoPlaying ? 'Pause automatic cinematic tour' : 'Start automatic cinematic tour'}
+              aria-pressed={isAutoPlaying}
+              title={isAutoPlaying ? 'Pause automatic tour' : 'Start automatic cinematic tour'}
             >
               <span
                 style={{
-                  width: '6px',
-                  height: '6px',
+                  width: '7px',
+                  height: '7px',
                   borderRadius: '50%',
-                  backgroundColor: isAutoPlaying ? '#10B981' : 'rgba(253,246,236,0.4)',
-                  boxShadow: isAutoPlaying ? '0 0 8px #10B981' : 'none',
+                  backgroundColor: isAutoPlaying ? '#10B981' : 'rgba(253,246,236,0.6)',
+                  boxShadow: isAutoPlaying ? '0 0 10px #10B981' : 'none',
                 }}
               />
               {isAutoPlaying ? 'Auto Tour: ON' : 'Auto Tour'}
             </button>
 
-            {/* ENQUIRE Button with Luxury Dropdown Menu */}
-            <div className="relative group">
+            {/* Concierge Enquire Dropdown */}
+            <div ref={enquireMenuRef} className="relative">
               <button
-                className="inline-flex items-center font-sans transition-all duration-300 cursor-pointer overflow-hidden relative group/btn"
+                onClick={() => setEnquireOpen(prev => !prev)}
+                aria-haspopup="dialog"
+                aria-expanded={enquireOpen}
+                className="inline-flex items-center font-sans transition-all duration-300 cursor-pointer"
                 style={{
-                  fontSize: '0.68rem',
+                  fontSize: '0.72rem',
                   letterSpacing: '0.22em',
                   textTransform: 'uppercase',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   color: '#F5E6C8',
-                  background: 'linear-gradient(135deg, rgba(212,147,42,0.18) 0%, rgba(12,18,12,0.65) 100%)',
-                  border: '1px solid rgba(212,147,42,0.5)',
+                  background:
+                    'linear-gradient(135deg, rgba(212,147,42,0.28) 0%, rgba(12,18,12,0.85) 100%)',
+                  border: '1px solid rgba(212,147,42,0.65)',
                   borderRadius: '3px',
-                  padding: '0.55rem 1.35rem',
+                  padding: '0.55rem 1.4rem',
                   minHeight: '38px',
                   gap: '8px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.15)',
+                  boxShadow: '0 4px 18px rgba(0,0,0,0.5)',
                 }}
               >
                 <span>Enquire</span>
                 <svg
-                  className="w-2.5 h-2.5 transition-transform duration-300 group-hover:rotate-180"
-                  style={{ fill: '#D4932A' }}
+                  className="w-2.5 h-2.5 transition-transform duration-300"
+                  style={{
+                    fill: '#D4932A',
+                    transform: enquireOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
                   viewBox="0 0 24 24"
                 >
                   <path d="M7 10l5 5 5-5z" />
                 </svg>
               </button>
 
-              {/* Luxury Dropdown Card */}
-              <div 
-                className="absolute right-0 top-full mt-3 w-72 p-3 rounded-lg opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 ease-out"
-                style={{
-                  background: 'rgba(10, 14, 11, 0.96)',
-                  backdropFilter: 'blur(24px)',
-                  WebkitBackdropFilter: 'blur(24px)',
-                  border: '1px solid rgba(212, 147, 42, 0.35)',
-                  boxShadow: '0 24px 48px rgba(0,0,0,0.85), 0 0 20px rgba(212,147,42,0.12)',
-                }}
-              >
-                <div className="px-3.5 py-2.5 border-b border-gold/15 mb-2">
-                  <p className="font-sans text-[9px] uppercase tracking-[0.28em] text-gold/80 font-medium">
-                    Concierge Contact
-                  </p>
+              {/* Dropdown Menu Card */}
+              {enquireOpen && (
+                <div
+                  className="absolute right-0 top-full mt-2.5 w-76 p-3 rounded-lg z-[120]"
+                  style={{
+                    background: 'rgba(8, 12, 9, 0.98)',
+                    backdropFilter: 'blur(30px)',
+                    WebkitBackdropFilter: 'blur(30px)',
+                    border: '1px solid rgba(212, 147, 42, 0.45)',
+                    boxShadow: '0 24px 60px rgba(0,0,0,0.9), 0 0 24px rgba(212,147,42,0.18)',
+                  }}
+                  role="dialog"
+                  aria-label="Direct Concierge Enquiry"
+                >
+                  <div className="px-3.5 py-2.5 border-b border-gold/20 mb-2">
+                    <p className="font-sans text-[10px] uppercase tracking-[0.28em] text-gold font-semibold">
+                      Concierge Contact
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href="mailto:theprideofspices12@gmail.com?subject=Enquiry%20from%20Pride%20of%20Spices%20Website&body=Hello%2C%20I%20would%20like%20to%20enquire%20about%20your%20heritage%20spices%20and%20wild%20forest%20honey."
+                      className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/15 transition-all duration-200"
+                      onClick={() => setEnquireOpen(false)}
+                    >
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                        style={{
+                          background: 'rgba(234, 67, 53, 0.18)',
+                          border: '1px solid rgba(234, 67, 53, 0.45)',
+                        }}
+                      >
+                        <svg className="w-4 h-4 fill-[#EA4335]" viewBox="0 0 24 24">
+                          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold text-cream">Gmail Enquiry</span>
+                        <span className="text-[10px] text-cream/60 tracking-normal lowercase">
+                          theprideofspices12@gmail.com
+                        </span>
+                      </div>
+                    </a>
+
+                    <a
+                      href={`https://wa.me/919645401284?text=${encodeURIComponent(
+                        'Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.'
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/15 transition-all duration-200"
+                      onClick={() => setEnquireOpen(false)}
+                    >
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                        style={{
+                          background: 'rgba(37, 211, 102, 0.18)',
+                          border: '1px solid rgba(37, 211, 102, 0.45)',
+                        }}
+                      >
+                        <svg className="w-4 h-4 fill-[#25D366]" viewBox="0 0 24 24">
+                          <path d="M12.031 2c-5.514 0-9.999 4.486-9.999 10 0 1.763.458 3.483 1.332 5.006l-1.364 4.994 5.111-1.34c1.472.803 3.131 1.24 4.92 1.24 5.514 0 10-4.486 10-10s-4.486-10-10-10zm0 18.273c-1.579 0-3.118-.423-4.453-1.222l-.319-.191-3.037.796.81-2.959-.209-.333c-.878-1.401-1.343-3.027-1.343-4.697 0-4.561 3.711-8.273 8.273-8.273s8.273 3.712 8.273 8.273-3.712 8.273-8.273 8.273zm4.531-6.177c-.249-.125-1.474-.728-1.703-.811-.229-.083-.396-.125-.563.125-.166.249-.645.811-.791.978-.146.166-.292.187-.541.062-.249-.125-1.054-.388-2.007-1.238-.742-.662-1.243-1.479-1.389-1.728-.146-.249-.016-.384.109-.508.113-.112.249-.292.374-.437.125-.146.166-.249.249-.416.083-.166.042-.312-.021-.437s-.563-1.358-.771-1.859c-.202-.489-.408-.423-.563-.431l-.479-.008c-.166 0-.437.062-.666.312-.229.249-.874.854-.874 2.083 0 1.229.895 2.416 1.02 2.583.125.166 1.761 2.689 4.267 3.771.596.257 1.061.411 1.424.526.598.19 1.142.163 1.572.099.48-.071 1.474-.603 1.682-1.186.208-.583.208-1.083.146-1.187-.063-.104-.229-.166-.479-.291z" />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold text-cream">WhatsApp Concierge</span>
+                        <span className="text-[10px] text-cream/60 tracking-normal capitalize">
+                          +91 96454 01284
+                        </span>
+                      </div>
+                    </a>
+
+                    <a
+                      href="tel:+919645401284"
+                      className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/15 transition-all duration-200"
+                      onClick={() => setEnquireOpen(false)}
+                    >
+                      <div
+                        className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                        style={{
+                          background: 'rgba(212, 147, 42, 0.18)',
+                          border: '1px solid rgba(212, 147, 42, 0.45)',
+                        }}
+                      >
+                        <svg className="w-4 h-4 fill-gold" viewBox="0 0 24 24">
+                          <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                        </svg>
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold text-cream">Phone Representative</span>
+                        <span className="text-[10px] text-cream/60 tracking-normal capitalize">
+                          Direct Line
+                        </span>
+                      </div>
+                    </a>
+                  </div>
                 </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <a
-                    href="mailto:theprideofspices12@gmail.com?subject=Enquiry%20from%20Pride%20of%20Spices%20Website&body=Hello%2C%20I%20would%20like%20to%20enquire%20about%20your%20heritage%20spices%20and%20wild%20forest%20honey."
-                    className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/10 transition-all duration-200 group/item"
-                  >
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover/item:scale-110"
-                      style={{ background: 'rgba(234, 67, 53, 0.15)', border: '1px solid rgba(234, 67, 53, 0.35)' }}
-                    >
-                      <svg className="w-4 h-4 fill-[#EA4335]" viewBox="0 0 24 24">
-                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                      </svg>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-cream group-hover/item:text-gold transition-colors">Gmail Enquiry</span>
-                      <span className="text-[9.5px] text-cream/50 tracking-normal lowercase">theprideofspices12@gmail.com</span>
-                    </div>
-                  </a>
-
-                  <a
-                    href={`https://wa.me/919645401284?text=${encodeURIComponent("Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/10 transition-all duration-200 group/item"
-                  >
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover/item:scale-110"
-                      style={{ background: 'rgba(37, 211, 102, 0.15)', border: '1px solid rgba(37, 211, 102, 0.35)' }}
-                    >
-                      <svg className="w-4 h-4 fill-[#25D366]" viewBox="0 0 24 24">
-                        <path d="M12.031 2c-5.514 0-9.999 4.486-9.999 10 0 1.763.458 3.483 1.332 5.006l-1.364 4.994 5.111-1.34c1.472.803 3.131 1.24 4.92 1.24 5.514 0 10-4.486 10-10s-4.486-10-10-10zm0 18.273c-1.579 0-3.118-.423-4.453-1.222l-.319-.191-3.037.796.81-2.959-.209-.333c-.878-1.401-1.343-3.027-1.343-4.697 0-4.561 3.711-8.273 8.273-8.273s8.273 3.712 8.273 8.273-3.712 8.273-8.273 8.273zm4.531-6.177c-.249-.125-1.474-.728-1.703-.811-.229-.083-.396-.125-.563.125-.166.249-.645.811-.791.978-.146.166-.292.187-.541.062-.249-.125-1.054-.388-2.007-1.238-.742-.662-1.243-1.479-1.389-1.728-.146-.249-.016-.384.109-.508.113-.112.249-.292.374-.437.125-.146.166-.249.249-.416.083-.166.042-.312-.021-.437s-.563-1.358-.771-1.859c-.202-.489-.408-.423-.563-.431l-.479-.008c-.166 0-.437.062-.666.312-.229.249-.874.854-.874 2.083 0 1.229.895 2.416 1.02 2.583.125.166 1.761 2.689 4.267 3.771.596.257 1.061.411 1.424.526.598.19 1.142.163 1.572.099.48-.071 1.474-.603 1.682-1.186.208-.583.208-1.083.146-1.187-.063-.104-.229-.166-.479-.291z"/>
-                      </svg>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-cream group-hover/item:text-gold transition-colors">WhatsApp Enquiry</span>
-                      <span className="text-[9.5px] text-cream/50 tracking-normal capitalize">Direct message support</span>
-                    </div>
-                  </a>
-
-                  <a
-                    href="tel:+919645401284"
-                    className="flex items-center gap-3.5 px-3.5 py-3 rounded-md font-sans text-xs tracking-wider uppercase text-cream/90 hover:text-gold hover:bg-gold/10 transition-all duration-200 group/item"
-                  >
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover/item:scale-110"
-                      style={{ background: 'rgba(212, 147, 42, 0.15)', border: '1px solid rgba(212, 147, 42, 0.35)' }}
-                    >
-                      <svg className="w-4 h-4 fill-gold" viewBox="0 0 24 24">
-                        <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                      </svg>
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-cream group-hover/item:text-gold transition-colors">Call Representative</span>
-                      <span className="text-[9.5px] text-cream/50 tracking-normal capitalize">+91 96454 01284</span>
-                    </div>
-                  </a>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -495,7 +534,7 @@ export function CinematicNav() {
           <button
             className="md:hidden flex flex-col justify-center gap-1.5"
             style={{
-              padding: '12px 4px 12px 12px',
+              padding: '12px',
               minHeight: '44px',
               minWidth: '44px',
               background: 'none',
@@ -508,35 +547,34 @@ export function CinematicNav() {
             aria-controls="mobile-menu"
           >
             <span
-              className="block w-5 bg-cream/70"
+              className="block w-6 bg-cream"
               style={{
-                height: '1.5px',
+                height: '2px',
                 transition: 'transform 0.3s cubic-bezier(0.16,1,0.3,1)',
-                transform: mobileOpen ? 'translateY(5px) rotate(45deg)' : 'none',
+                transform: mobileOpen ? 'translateY(6px) rotate(45deg)' : 'none',
               }}
             />
             <span
-              className="block w-5 bg-cream/70"
+              className="block w-6 bg-cream"
               style={{
-                height: '1.5px',
-                transition: 'transform 0.3s ease, opacity 0.2s ease',
+                height: '2px',
+                transition: 'opacity 0.2s ease',
                 opacity: mobileOpen ? 0 : 1,
-                transform: mobileOpen ? 'scaleX(0)' : 'none',
               }}
             />
             <span
-              className="block w-5 bg-cream/70"
+              className="block w-6 bg-cream"
               style={{
-                height: '1.5px',
+                height: '2px',
                 transition: 'transform 0.3s cubic-bezier(0.16,1,0.3,1)',
-                transform: mobileOpen ? 'translateY(-5px) rotate(-45deg)' : 'none',
+                transform: mobileOpen ? 'translateY(-6px) rotate(-45deg)' : 'none',
               }}
             />
           </button>
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Drawer */}
       <div
         id="mobile-menu"
         className="fixed inset-0 z-[99] md:hidden"
@@ -545,205 +583,172 @@ export function CinematicNav() {
         aria-label="Navigation menu"
         aria-hidden={!mobileOpen}
         style={{
-          background: 'rgba(6,10,6,0.97)',
-          backdropFilter: 'blur(28px) saturate(1.3)',
-          WebkitBackdropFilter: 'blur(28px) saturate(1.3)',
+          background: 'rgba(4,8,5,0.98)',
+          backdropFilter: 'blur(32px) saturate(1.3)',
+          WebkitBackdropFilter: 'blur(32px) saturate(1.3)',
           opacity: mobileOpen ? 1 : 0,
           pointerEvents: mobileOpen ? 'auto' : 'none',
           transform: mobileOpen ? 'translateY(0)' : 'translateY(-100%)',
           transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)',
         }}
       >
-        {/* Add safe area insets to mobile menu content so it doesn't clash with Dynamic Island or home indicator */}
         <div
           className="flex flex-col items-center justify-center h-full"
           style={{
-            gap: 'clamp(1.5rem, 4vh, 2.5rem)',
+            gap: 'clamp(1.25rem, 3.5vh, 2rem)',
             paddingTop: 'env(safe-area-inset-top)',
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-          {/* Brand — logo mark + wordmark */}
+          {/* Brand header */}
           <div
             className="absolute left-6 flex items-center gap-2"
-            style={{ top: 'calc(1.4rem + env(safe-area-inset-top))' }}
+            style={{ top: 'calc(1.2rem + env(safe-area-inset-top))' }}
           >
             <img
               src="/images/logo.svg"
               alt=""
               aria-hidden="true"
               style={{
-                width: '22px',
+                width: '24px',
                 height: 'auto',
-                filter: 'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
-                opacity: 0.7,
+                filter:
+                  'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
+                opacity: 0.85,
               }}
             />
-            <p
-              className="font-serif"
-              style={{
-                fontSize: 'clamp(0.8rem, 2vw, 0.95rem)',
-                color: 'rgba(242,249,245,0.3)',
-              }}
-            >
-              The Pride <span className="italic" style={{ color: 'rgba(1,128,57,0.7)' }}>of Spices</span>
+            <p className="font-serif text-sm text-cream/70">
+              The Pride <span className="italic text-brand-green">of Spices</span>
             </p>
           </div>
 
-          {NAV_LINKS.map((link, i) => (
+          {/* Close button */}
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="absolute font-sans uppercase text-cream/70 hover:text-cream transition-colors"
+            style={{
+              top: 'calc(1.1rem + env(safe-area-inset-top))',
+              right: '1.5rem',
+              fontSize: '0.75rem',
+              letterSpacing: '0.22em',
+              minHeight: '44px',
+              minWidth: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.5rem',
+            }}
+            aria-label="Close menu"
+          >
+            Close
+          </button>
+
+          {NAV_LINKS.map(link => (
             <button
-              key={link.label}
-              onClick={() => scrollToPct(link.pct)}
-              className="font-serif text-cream/75 hover:text-cream transition-all duration-300"
+              key={link.sceneId}
+              onClick={() => handleNavClick(link.sceneId)}
+              className="font-serif text-cream hover:text-gold transition-colors duration-200"
               style={{
-                fontSize: 'clamp(1.75rem, 8vw, 3rem)',
+                fontSize: 'clamp(1.65rem, 7vw, 2.5rem)',
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                minHeight: '56px',
+                minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
-                padding: '0.5rem 2rem',
-                opacity: mobileOpen ? 1 : 0,
-                transform: mobileOpen ? 'translateY(0)' : 'translateY(16px)',
-                transition: `color 0.3s ease, opacity 0.4s ease ${i * 65}ms, transform 0.45s cubic-bezier(0.16,1,0.3,1) ${i * 65}ms`,
+                padding: '0.25rem 1.5rem',
               }}
             >
               {link.label}
             </button>
           ))}
 
-          <div style={{ width: '2rem', height: '1px', background: 'rgba(212,147,42,0.3)', marginTop: '0.5rem' }} />
+          <div
+            style={{
+              width: '2.5rem',
+              height: '1px',
+              background: 'rgba(212,147,42,0.4)',
+              margin: '0.5rem 0',
+            }}
+          />
 
-          <div className="flex flex-col gap-3 items-stretch w-full" style={{ maxWidth: '280px' }}>
+          <div className="flex flex-col gap-2.5 items-stretch w-full" style={{ maxWidth: '300px' }}>
             <button
               onClick={() => {
                 setMobileOpen(false);
                 setIsAutoPlaying(true);
               }}
-              className="font-sans uppercase"
+              className="font-sans uppercase font-medium"
               style={{
-                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
-                letterSpacing: '0.24em',
+                fontSize: '0.72rem',
+                letterSpacing: '0.22em',
                 color: isAutoPlaying ? '#10B981' : '#FDF6EC',
-                border: isAutoPlaying ? '1px solid rgba(16,185,129,0.6)' : '1px solid rgba(255,255,255,0.25)',
-                background: isAutoPlaying ? 'rgba(16,185,129,0.12)' : 'transparent',
-                borderRadius: '2px',
-                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
+                border: isAutoPlaying
+                  ? '1px solid rgba(16,185,129,0.7)'
+                  : '1px solid rgba(255,255,255,0.3)',
+                background: isAutoPlaying ? 'rgba(16,185,129,0.15)' : 'transparent',
+                borderRadius: '3px',
+                padding: '0.85rem 1.25rem',
                 minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: mobileOpen ? 1 : 0,
-                transition: 'opacity 0.4s ease 240ms',
                 cursor: 'pointer',
-                width: '100%',
               }}
             >
               {isAutoPlaying ? 'Pause Auto Tour' : 'Start Auto Tour'}
             </button>
             <a
-              href="mailto:theprideofspices12@gmail.com?subject=Enquiry%20from%20Pride%20of%20Spices%20Website&body=Hello%2C%20I%20would%20like%20to%20enquire%20about%20your%20heritage%20spices%20and%20wild%20forest%20honey."
-              className="font-sans uppercase"
+              href="mailto:theprideofspices12@gmail.com"
+              className="font-sans uppercase text-center"
               style={{
-                fontSize: 'clamp(0.55rem, 1.2vw, 0.72rem)',
+                fontSize: '0.72rem',
                 letterSpacing: '0.18em',
                 color: '#EA4335',
                 border: '1px solid rgba(234,67,53,0.6)',
-                background: 'rgba(234,67,53,0.1)',
-                borderRadius: '2px',
-                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
+                background: 'rgba(234,67,53,0.12)',
+                borderRadius: '3px',
+                padding: '0.85rem 1.25rem',
                 minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: mobileOpen ? 1 : 0,
-                transition: 'opacity 0.4s ease 260ms',
-                width: '100%',
                 textDecoration: 'none',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
               }}
               onClick={() => setMobileOpen(false)}
             >
-              Gmail: theprideofspices12@gmail.com
+              Gmail Enquiry
             </a>
             <a
-              href={`https://wa.me/919645401284?text=${encodeURIComponent("Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.")}`}
+              href={`https://wa.me/919645401284?text=${encodeURIComponent(
+                'Hello Pride of Spices, I would like to enquire about your heritage spices & wild forest honey.'
+              )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-sans uppercase"
+              className="font-sans uppercase text-center"
               style={{
-                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
-                letterSpacing: '0.24em',
+                fontSize: '0.72rem',
+                letterSpacing: '0.22em',
                 color: '#D4932A',
-                border: '1px solid rgba(212,147,42,0.6)',
-                background: 'rgba(212,147,42,0.1)',
-                borderRadius: '2px',
-                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
+                border: '1px solid rgba(212,147,42,0.65)',
+                background: 'rgba(212,147,42,0.12)',
+                borderRadius: '3px',
+                padding: '0.85rem 1.25rem',
                 minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                opacity: mobileOpen ? 1 : 0,
-                transition: 'opacity 0.4s ease 280ms',
-                width: '100%',
                 textDecoration: 'none',
               }}
               onClick={() => setMobileOpen(false)}
             >
-              WhatsApp: +91 96454 01284
-            </a>
-            <a
-              href="tel:+919645401284"
-              className="font-sans uppercase"
-              style={{
-                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
-                letterSpacing: '0.24em',
-                color: '#FDF6EC',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '2px',
-                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
-                minHeight: '48px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: mobileOpen ? 1 : 0,
-                transition: 'opacity 0.4s ease 320ms',
-                width: '100%',
-                textDecoration: 'none',
-              }}
-              onClick={() => setMobileOpen(false)}
-            >
-              Call: +91 96454 01284
+              WhatsApp Concierge
             </a>
           </div>
         </div>
-
-        {/* Close button */}
-        <button
-          onClick={() => setMobileOpen(false)}
-          className="absolute font-sans uppercase text-cream/50 hover:text-cream/90 transition-colors"
-          style={{
-            top: 'calc(1.25rem + env(safe-area-inset-top))',
-            right: '1.5rem',
-            fontSize: 'clamp(0.6rem, 1.2vw, 0.7rem)',
-            letterSpacing: '0.22em',
-            minHeight: '44px',
-            minWidth: '44px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: '0.5rem',
-          }}
-          aria-label="Close menu"
-        >
-          Close
-        </button>
       </div>
     </>
   );
