@@ -21,9 +21,10 @@ interface NavLink {
 }
 
 const NAV_LINKS: NavLink[] = [
-  { label: 'The Forest', pct: 0.13, scene: '02' },
-  { label: 'The Harvest', pct: 0.52, scene: '04' },
-  { label: 'Wild Honey', pct: 0.70, scene: '4.5' },
+  { label: 'The Forest', pct: 0.18, scene: '02' },
+  { label: 'The Discovery', pct: 0.32, scene: '03' },
+  { label: 'The Harvest', pct: 0.58, scene: '04' },
+  { label: 'Wild Honey', pct: 0.73, scene: '4.5' },
   { label: 'Collection', pct: 0.88, scene: '05' },
 ];
 
@@ -40,11 +41,14 @@ export function CinematicNav() {
   const autoPlayRafRef = useRef<number | null>(null);
 
   const getActiveScene = useCallback((pct: number): number => {
-    if (pct >= 0.85) return 3; // Scene 5: Collection
-    for (let i = NAV_LINKS.length - 1; i >= 0; i--) {
-      if (pct >= NAV_LINKS[i].pct - 0.02) return i;
-    }
-    return -1;
+    // Thresholds are the MIDPOINTS between snap points, so the active scene switches
+    // exactly halfway through each crossfade — feels natural and avoids flicker.
+    if (pct >= 0.81) return 4; // Scene 5: Collection (halfway between 0.73 and 0.88)
+    if (pct >= 0.66) return 3; // Wild Honey (halfway between 0.58 and 0.73)
+    if (pct >= 0.45) return 2; // The Harvest (halfway between 0.32 and 0.58)
+    if (pct >= 0.25) return 1; // The Discovery (halfway between 0.18 and 0.32)
+    if (pct >= 0.09) return 0; // The Forest (halfway between 0.0 and 0.18)
+    return -1; // Scene1 / hero (before nav shows)
   }, []);
 
   const toggleAutoPlay = useCallback(() => {
@@ -102,13 +106,16 @@ export function CinematicNav() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      // Cap pct to the cinematic scroll range (SceneManager = 800vh, sticky range = 700vh).
-      // This prevents Collection's extra page height from skewing the nav thresholds.
-      const cinematicMaxScroll = window.innerHeight * 7; // 700vh
-      const pct = cinematicMaxScroll > 0 ? Math.min(1, scrollY / cinematicMaxScroll) : 0;
+      // FIXED: Use SceneManager height (800vh) as the reference for all cinematic nav state.
+      // Previously mixed two different denominators:
+      //   - pct used 800vh (cinematicMaxScroll) for scene detection
+      //   - scrollPct used full document height for the progress bar
+      // This mismatch made the progress bar reach 100% before Collection was visible.
+      // Now both use 800vh so scene dots, active labels, and progress bar all match.
+      const sceneManagerScrollPx = window.innerHeight * 8.0; // 800vh
+      const pct = sceneManagerScrollPx > 0 ? Math.min(1, scrollY / sceneManagerScrollPx) : 0;
 
-      setScrollPct(maxScroll > 0 ? scrollY / maxScroll : 0); // progress bar still uses full range
+      setScrollPct(pct); // progress bar uses same cinematic range
       setVisible(pct > 0.12);
       setActiveScene(getActiveScene(pct));
 
@@ -126,6 +133,7 @@ export function CinematicNav() {
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
     };
   }, [getActiveScene]);
+
 
   // Animate nav in/out with GSAP — GPU-accelerated
   useEffect(() => {
@@ -161,19 +169,41 @@ export function CinematicNav() {
   }, [mobileOpen]);
 
   const scrollToPct = useCallback((pct: number) => {
-    if (pct >= 0.85) {
+    if (pct >= 0.88) {
+      // For Collection: scroll directly to the Scene5 element in page flow
       const collectionEl = document.getElementById('collection');
       if (collectionEl) {
+        const lenis = getLenisInstance();
         const top = collectionEl.getBoundingClientRect().top + window.scrollY;
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        scrollToPercent(Math.min(1, top / maxScroll));
+        if (lenis) {
+          lenis.scrollTo(top, { duration: 1.4, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+        } else {
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
         setMobileOpen(false);
         return;
       }
     }
-    scrollToPercent(pct);
+
+    // FIXED: masterTimeline positions (0.0–1.0) are relative to SceneManager height (800vh),
+    // NOT the total document scroll height. Previously scrollToPercent(pct) used
+    // (total document scrollHeight - window.innerHeight) which includes Scene5_Collection
+    // page section (~250-300vh), causing every nav link to land 30-40% too far into the page.
+    //
+    // Correct formula: target = pct * SceneManager_height
+    //   SceneManager = 800vh
+    const sceneManagerScrollPx = window.innerHeight * 8.0; // 800vh total
+    const targetPx = Math.round(pct * sceneManagerScrollPx);
+
+    const lenis = getLenisInstance();
+    if (lenis) {
+      lenis.scrollTo(targetPx, { duration: 1.4, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    } else {
+      window.scrollTo({ top: targetPx, behavior: 'smooth' });
+    }
     setMobileOpen(false);
   }, []);
+
 
   return (
     <>
@@ -185,13 +215,13 @@ export function CinematicNav() {
         aria-label="Main navigation"
         id="main-nav"
       >
-        {/* Scroll Progress Bar */}
+        {/* Scroll Progress Bar — brand green */}
         <div
           aria-hidden="true"
           className="absolute bottom-0 left-0 h-[1.5px] pointer-events-none"
           style={{
             width: `${scrollPct * 100}%`,
-            background: 'linear-gradient(90deg, rgba(212,147,42,0.0) 0%, rgba(212,147,42,0.85) 100%)',
+            background: 'linear-gradient(90deg, rgba(1,128,57,0.0) 0%, rgba(1,128,57,0.9) 100%)',
             transition: 'width 0.12s linear',
           }}
         />
@@ -212,10 +242,10 @@ export function CinematicNav() {
             transition: 'background 0.3s ease, backdrop-filter 0.3s ease',
           }}
         >
-          {/* Brand Wordmark */}
+          {/* Brand Wordmark with logo mark */}
           <button
             onClick={() => scrollToPct(0)}
-            className="font-serif text-cream/85 hover:text-cream transition-colors duration-300"
+            className="font-serif hover:opacity-90 transition-opacity duration-300"
             style={{
               fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
               letterSpacing: '0.02em',
@@ -226,11 +256,26 @@ export function CinematicNav() {
               minHeight: '44px',
               display: 'flex',
               alignItems: 'center',
+              gap: '0.6rem',
+              color: 'rgba(242,249,245,0.88)',
             }}
             aria-label="Return to beginning"
           >
+            {/* Official P-leaf logo mark */}
+            <img
+              src="/images/logo.svg"
+              alt=""
+              aria-hidden="true"
+              style={{
+                width: 'clamp(22px, 3.5vw, 30px)',
+                height: 'auto',
+                filter: 'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
+                opacity: 0.85,
+                flexShrink: 0,
+              }}
+            />
             The Pride{' '}
-            <span className="italic" style={{ color: '#D4932A', marginLeft: '0.25em' }}>of Spices</span>
+            <span className="italic" style={{ color: '#018039', marginLeft: '0.18em' }}>of Spices</span>
           </button>
 
           {/* Desktop Nav Links + Scene Progress Dots */}
@@ -260,10 +305,10 @@ export function CinematicNav() {
                       transformOrigin: 'left center',
                       transform: activeScene === i ? 'scaleX(1)' : 'scaleX(0.25)',
                       background: activeScene === i
-                        ? 'rgba(212,147,42,0.92)'
+                        ? 'rgba(1,128,57,0.95)'
                         : activeScene > i
-                          ? 'rgba(212,147,42,0.42)'
-                          : 'rgba(255,255,255,0.2)',
+                          ? 'rgba(1,128,57,0.42)'
+                          : 'rgba(255,255,255,0.18)',
                       transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.45s ease',
                     }}
                   />
@@ -280,7 +325,7 @@ export function CinematicNav() {
                   fontSize: 'clamp(0.65rem, 1.2vw, 0.75rem)',
                   letterSpacing: '0.18em',
                   textTransform: 'uppercase',
-                  color: activeScene === i ? 'rgba(212,147,42,0.98)' : 'rgba(253,246,236,0.45)',
+                  color: activeScene === i ? 'rgba(1,128,57,0.98)' : 'rgba(242,249,245,0.45)',
                   transition: 'color 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                   padding: '8px 0',
                   background: 'none',
@@ -297,7 +342,7 @@ export function CinematicNav() {
                 <span
                   className="absolute -bottom-0.5 left-0 h-[1px] w-full"
                   style={{
-                    background: 'rgba(212,147,42,0.75)',
+                    background: 'rgba(1,128,57,0.75)',
                     transformOrigin: 'left',
                     transform: activeScene === i ? 'scaleX(1)' : 'scaleX(0)',
                     transition: 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -518,16 +563,32 @@ export function CinematicNav() {
             paddingBottom: 'env(safe-area-inset-bottom)',
           }}
         >
-          {/* Brand */}
-          <p
-            className="font-serif text-cream/30 absolute left-6"
-            style={{
-              top: 'calc(1.5rem + env(safe-area-inset-top))',
-              fontSize: 'clamp(0.8rem, 2vw, 0.95rem)',
-            }}
+          {/* Brand — logo mark + wordmark */}
+          <div
+            className="absolute left-6 flex items-center gap-2"
+            style={{ top: 'calc(1.4rem + env(safe-area-inset-top))' }}
           >
-            The Pride <span className="italic" style={{ color: 'rgba(212,147,42,0.6)' }}>of Spices</span>
-          </p>
+            <img
+              src="/images/logo.svg"
+              alt=""
+              aria-hidden="true"
+              style={{
+                width: '22px',
+                height: 'auto',
+                filter: 'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
+                opacity: 0.7,
+              }}
+            />
+            <p
+              className="font-serif"
+              style={{
+                fontSize: 'clamp(0.8rem, 2vw, 0.95rem)',
+                color: 'rgba(242,249,245,0.3)',
+              }}
+            >
+              The Pride <span className="italic" style={{ color: 'rgba(1,128,57,0.7)' }}>of Spices</span>
+            </p>
+          </div>
 
           {NAV_LINKS.map((link, i) => (
             <button
@@ -554,7 +615,7 @@ export function CinematicNav() {
 
           <div style={{ width: '2rem', height: '1px', background: 'rgba(212,147,42,0.3)', marginTop: '0.5rem' }} />
 
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <div className="flex flex-col gap-3 items-stretch w-full" style={{ maxWidth: '280px' }}>
             <button
               onClick={() => {
                 setMobileOpen(false);
@@ -568,7 +629,7 @@ export function CinematicNav() {
                 border: isAutoPlaying ? '1px solid rgba(16,185,129,0.6)' : '1px solid rgba(255,255,255,0.25)',
                 background: isAutoPlaying ? 'rgba(16,185,129,0.12)' : 'transparent',
                 borderRadius: '2px',
-                padding: '0.875rem 2rem',
+                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
                 minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
@@ -576,6 +637,7 @@ export function CinematicNav() {
                 opacity: mobileOpen ? 1 : 0,
                 transition: 'opacity 0.4s ease 240ms',
                 cursor: 'pointer',
+                width: '100%',
               }}
             >
               {isAutoPlaying ? 'Pause Auto Tour' : 'Start Auto Tour'}
@@ -584,19 +646,24 @@ export function CinematicNav() {
               href="mailto:theprideofspices12@gmail.com?subject=Enquiry%20from%20Pride%20of%20Spices%20Website&body=Hello%2C%20I%20would%20like%20to%20enquire%20about%20your%20heritage%20spices%20and%20wild%20forest%20honey."
               className="font-sans uppercase"
               style={{
-                fontSize: 'clamp(0.65rem, 1.4vw, 0.78rem)',
-                letterSpacing: '0.24em',
+                fontSize: 'clamp(0.55rem, 1.2vw, 0.72rem)',
+                letterSpacing: '0.18em',
                 color: '#EA4335',
                 border: '1px solid rgba(234,67,53,0.6)',
                 background: 'rgba(234,67,53,0.1)',
                 borderRadius: '2px',
-                padding: '0.875rem 2rem',
+                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
                 minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: mobileOpen ? 1 : 0,
                 transition: 'opacity 0.4s ease 260ms',
+                width: '100%',
+                textDecoration: 'none',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
               onClick={() => setMobileOpen(false)}
             >
@@ -614,13 +681,15 @@ export function CinematicNav() {
                 border: '1px solid rgba(212,147,42,0.6)',
                 background: 'rgba(212,147,42,0.1)',
                 borderRadius: '2px',
-                padding: '0.875rem 2rem',
+                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
                 minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: mobileOpen ? 1 : 0,
                 transition: 'opacity 0.4s ease 280ms',
+                width: '100%',
+                textDecoration: 'none',
               }}
               onClick={() => setMobileOpen(false)}
             >
@@ -635,13 +704,15 @@ export function CinematicNav() {
                 color: '#FDF6EC',
                 border: '1px solid rgba(255,255,255,0.2)',
                 borderRadius: '2px',
-                padding: '0.875rem 2rem',
+                padding: 'clamp(0.75rem, 3vw, 0.875rem) clamp(0.75rem, 4vw, 1.5rem)',
                 minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: mobileOpen ? 1 : 0,
                 transition: 'opacity 0.4s ease 320ms',
+                width: '100%',
+                textDecoration: 'none',
               }}
               onClick={() => setMobileOpen(false)}
             >

@@ -94,7 +94,6 @@ function createParticle(
   };
 }
 
-const TOTAL_COUNT = 32; // within 20-40 budget
 
 export function ForestParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);

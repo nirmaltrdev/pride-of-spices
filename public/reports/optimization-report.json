@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-07T06:37:21.674Z",
+  "timestamp": "2026-09-03T13:40:44.538Z",
   "results": [
     {
       "originalAsset": "act1-mist.jpg",
@@ -90,6 +90,28 @@
       "failedConversions": []
     },
     {
+      "originalAsset": "coriander.jpg",
+      "originalSizeKb": "895.98",
+      "optimized": {
+        "webpSizeKb": "154.11",
+        "webpRatio": "17.2%",
+        "avifSizeKb": "148.49",
+        "avifRatio": "16.6%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "crushed_pepper.jpg",
+      "originalSizeKb": "818.43",
+      "optimized": {
+        "webpSizeKb": "134.21",
+        "webpRatio": "16.4%",
+        "avifSizeKb": "122.30",
+        "avifRatio": "14.9%"
+      },
+      "failedConversions": []
+    },
+    {
       "originalAsset": "farmer-hands.jpg",
       "originalSizeKb": "260.79",
       "optimized": {
@@ -163,6 +185,17 @@
         "webpRatio": "11.7%",
         "avifSizeKb": "87.25",
         "avifRatio": "11.8%"
+      },
+      "failedConversions": []
+    },
+    {
+      "originalAsset": "ginger.jpg",
+      "originalSizeKb": "774.31",
+      "optimized": {
+        "webpSizeKb": "109.87",
+        "webpRatio": "14.2%",
+        "avifSizeKb": "97.50",
+        "avifRatio": "12.6%"
       },
       "failedConversions": []
     },

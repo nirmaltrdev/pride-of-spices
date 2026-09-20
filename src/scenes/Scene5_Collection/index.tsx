@@ -212,9 +212,10 @@ export function Scene5_Collection() {
         return;
       }
 
-      gsap.set(headerRef.current, { opacity: 1, y: 0, filter: 'blur(0px)' });
-      gsap.set(footerRef.current, { opacity: 1, y: 0 });
-      gsap.set(productItems, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' });
+      // Set initial hidden states so elements don't flash before animation fires
+      gsap.set(headerRef.current, { opacity: 0, y: 32, filter: 'blur(6px)' });
+      gsap.set(footerRef.current, { opacity: 0, y: 18 });
+      gsap.set(productItems, { opacity: 0, y: 45, filter: 'blur(6px)' });
 
       // ── Real-time Reveal Timeline ───────────────────────────────────
       const revealTl = gsap.timeline({ paused: true });
@@ -276,36 +277,85 @@ export function Scene5_Collection() {
     const el = sceneRef.current;
     let fired = false;
 
+    const sel = gsap.utils.selector(sceneRef);
+
+    // showFallback: snap all content to visible if IntersectionObserver or triggerReveal
+    // never fired. Defined first so it can be referenced by the 300ms fallback timer below.
+    const showFallback = () => {
+      if (fired) return;
+      fired = true;
+      const productItems = sel('[data-product-item]');
+      if (headerRef.current) gsap.set(headerRef.current, { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 });
+      if (footerRef.current) gsap.set(footerRef.current, { opacity: 1, y: 0 });
+      if (productItems.length) gsap.set(productItems, { opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 });
+    };
+
+    // ── Fallback: if observer never fires (fast scroll past, nav jump where element is
+    // already in viewport on mount), force-reveal after 300ms — not 2500ms.
+    // 300ms is enough time for the observer callback to fire naturally;
+    // if it hasn't by then we know the section is already visible and we reveal immediately.
+    const fallbackTimer = setTimeout(showFallback, 300);
+
+    const triggerReveal = () => {
+      if (fired) return;
+      fired = true;
+      clearTimeout(fallbackTimer);
+
+      // Guard: if the component unmounted after the observer fired but
+      // before the callback runs, skip animations to avoid GSAP null-target warnings.
+      if (!bgRef.current || !lightRef.current || !curtainRef.current) {
+        showFallback();
+        return;
+      }
+
+      // PRIMARY 1: camera focus-in
+      gsap.to(bgRef.current, { scale: 1.0, filter: 'blur(0px)', duration: 0.9, ease: 'power2.out' });
+
+      // SECONDARY: light bloom
+      gsap.to(lightRef.current, { opacity: 0.42, scale: 1.15, duration: 1.0, ease: 'power2.out' });
+
+      // PRIMARY 2: curtain lift.
+      // Start revealTl partway through so cards begin appearing BEFORE curtain disappears
+      gsap.to(curtainRef.current, {
+        opacity: 0,
+        duration: 0.7,
+        ease: 'power2.inOut',
+        onStart: () => {
+          revealTlRef.current?.play();
+        },
+      });
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !fired) {
-          fired = true;
-          observer.disconnect();
-
-          // PRIMARY 1: camera focus-in
-          gsap.to(bgRef.current, { scale: 1.0, filter: 'blur(0px)', duration: 0.9, ease: 'power2.out' });
-
-          // SECONDARY: light bloom
-          gsap.to(lightRef.current, { opacity: 0.42, scale: 1.15, duration: 1.0, ease: 'power2.out' });
-
-          // PRIMARY 2: curtain lift.
-          // Start revealTl partway through (onStart + 0.28s delay) so cards begin
-          // appearing BEFORE the curtain fully disappears — eliminates the blank gap (BUG 2).
-          gsap.to(curtainRef.current, {
-            opacity: 0,
-            duration: 0.7,
-            ease: 'power2.inOut',
-            onStart: () => {
-              revealTlRef.current?.play();
-            },
-          });
+        if (entries[0].isIntersecting) {
+          triggerReveal();
         }
       },
-      { threshold: 0, rootMargin: '0px' } // fires as soon as any pixel of section enters viewport
+      // threshold: 0 — fires as soon as ANY pixel of the section enters the viewport.
+      // rootMargin was previously '-50px 0px 0px 0px' which required the section to be
+      // 50px INSIDE the viewport before firing — on fast scroll this window could be
+      // missed entirely, leaving all content permanently at opacity:0.
+      { threshold: 0 }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+
+    // Immediate viewport check: when user nav-clicks to Collection, the section
+    // is already in the viewport before this effect runs. The IntersectionObserver
+    // fires once on .observe() but there is a micro-task delay before the callback.
+    // Check synchronously so nav-click arrivals never see a blank flash.
+    const rect = el.getBoundingClientRect();
+    const alreadyVisible = rect.top < window.innerHeight && rect.bottom > 0;
+    if (alreadyVisible) {
+      // Tiny rAF delay to let GSAP context finish its setup from useLayoutEffect
+      requestAnimationFrame(() => triggerReveal());
+    }
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(fallbackTimer);
+    };
   }, [prefersReducedMotion]);
 
 

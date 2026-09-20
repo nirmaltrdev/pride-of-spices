@@ -11,6 +11,11 @@ import gsap from 'gsap';
  * - All cursor state is now managed through refs (no React re-renders in the
  *   hot path), driven exclusively by the GSAP ticker at 60/120 fps.
  * - Hides on touch / coarse-pointer devices.
+ *
+ * v3 Fixes:
+ * - Z-INDEX RAISED: ProductOverlay uses inline style zIndex: 100000. Tailwind's
+ *   z-[9999] class loses to that in specificity. Switched to inline style
+ *   zIndex: 200001 / 200000 so cursor always renders above every overlay/modal.
  */
 export function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
@@ -113,8 +118,11 @@ export function CustomCursor() {
       {/* Precision inner dot — follows mouse instantly */}
       <div
         ref={dotRef}
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999]"
+        className="fixed top-0 left-0 rounded-full pointer-events-none"
         style={{
+          // zIndex: 200001 — must beat ProductOverlay's inline zIndex: 100000.
+          // Tailwind z-[9999] is overridden by inline styles on overlays.
+          zIndex: 200001,
           width: 8,
           height: 8,
           backgroundColor: '#D4932A',
@@ -127,8 +135,10 @@ export function CustomCursor() {
       {/* Spring follower ring — lags behind by lerp factor */}
       <div
         ref={ringRef}
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9998]"
+        className="fixed top-0 left-0 rounded-full pointer-events-none"
         style={{
+          // zIndex: 200000 — just below the dot, but still above all overlays.
+          zIndex: 200000,
           width: 26,
           height: 26,
           border: '1px solid rgba(212,147,42,0.35)',

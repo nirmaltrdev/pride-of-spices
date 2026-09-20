@@ -8,12 +8,16 @@ import { Assets } from '../../core/assets/AssetManifest';
 /**
  * SCENE 4.5: WILD FOREST HONEY — Version 2 (Fixed Timeline)
  *
- * Master timeline positions (scroll % range: 70% → 82%):
+ * Master timeline positions (scroll % range: 70% → 100%):
  *   0.70 → Scene fades in, world turns amber
  *   0.73 → Golden bloom, honeycomb pattern
  *   0.75 → Narrative text 1 (The Golden Wilds)
  *   0.79 → Narrative text 2 (Forest's Flavour)
- *   0.82 → Scene exits, Collection takes over
+ *   0.94 → Scene exits (PUSHED from 0.88, snap removed — no longer needed early)
+ *
+ * FIX: Exit pushed from 0.88 → 0.94. With GSAP snap removed in SceneManager,
+ * there is no forced pause at 0.88. Scene can stay rich until the end of 750vh.
+ * This eliminates the blank dark zone between Wild Honey and Collection.
  */
 export function Scene4_5_Honey() {
   const { masterTimeline } = useMasterTimeline();
@@ -97,11 +101,26 @@ export function Scene4_5_Honey() {
         0.81
       );
 
-      // === SCENE EXIT: text & overlays fade out cleanly at 0.88, background stays visible so Collection covers it smoothly ===
-      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.04 }, 0.88);
+      // === SCENE EXIT at 0.94 (pushed from 0.88 — snap removed so no early bail needed) ===
+      // With snap gone, scene stays rich all the way to 0.94 before fading.
+      // The container and its children all fade together over 0.06 progress (≈ 45px scroll at 750vh)
+      // so the transition to the dark background is smooth and immediate.
+      masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.03 }, 0.94);
       masterTimeline.to([warmOverlayRef.current, honeycombRef.current, honeyDripsRef.current, glowRef.current], {
-        opacity: 0, duration: 0.04, stagger: 0.005
-      }, 0.89);
+        opacity: 0, duration: 0.04, stagger: 0.003
+      }, 0.94);
+      // Honey background fades to dark smoothly.
+      masterTimeline.to(honeyBgRef.current, {
+        opacity: 0, filter: 'blur(4px) saturate(0)', duration: 0.06, ease: 'power1.in'
+      }, 0.94);
+
+      // Container exits at 0.94 in sync with children — no blank frames between children
+      // fading and the container becoming transparent. SceneManager background (#021A0A)
+      // shows through for the final fraction of scroll before Collection comes into view.
+      masterTimeline.to(sceneRef.current, {
+        opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.06, ease: 'power1.inOut'
+      }, 0.94);
+
     }, sceneRef);
 
     return () => ctx.revert();

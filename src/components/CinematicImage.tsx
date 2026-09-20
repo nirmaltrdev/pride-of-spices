@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AssetDefinition } from '@/core/assets/AssetManifest';
 
-// Module-level debounce: coalesces rapid image onLoad calls (up to 12 images
-// on the page) into a single ScrollTrigger.refresh() to avoid layout thrash.
-let _refreshTimer: ReturnType<typeof setTimeout> | null = null;
-function debouncedRefresh() {
-  if (_refreshTimer) clearTimeout(_refreshTimer);
-  _refreshTimer = setTimeout(() => {
-    _refreshTimer = null;
-    ScrollTrigger.refresh();
-  }, 120);
-}
+// NOTE: ScrollTrigger.refresh() is intentionally NOT called on image load.
+//
+// Calling refresh() on each lazy image load causes a full ScrollTrigger reset:
+// the engine seeks every timeline back to position 0 (initial state = opacity:0 /
+// visibility:hidden for all scenes), measures layout, then re-scrubs to the current
+// scroll position. With 20+ lazy-loaded images on this page, each one loading while
+// the user is scrolling caused a visible blank flash across ALL scenes simultaneously.
+//
+// The Preloader calls ScrollTrigger.refresh() exactly once after all stage-1 assets
+// are loaded and the page has settled — that single call is sufficient. All scene
+// containers are position:absolute inside a sticky viewport, so lazy images loading
+// later do not change the scroll height or bounds that ScrollTrigger needs to track.
 
 interface CinematicImageProps {
   asset: AssetDefinition;
@@ -49,9 +50,6 @@ export function CinematicImage({
 
   const handleLoad = () => {
     setIsLoaded(true);
-    // Recompute ScrollTrigger bounds after image dimensions are known.
-    // Debounced: multiple images loading together coalesce into one refresh.
-    debouncedRefresh();
     if (onLoad) onLoad();
   };
 

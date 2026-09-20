@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://www.prideofspices.com/sitemap.xml
+Sitemap: https://www.theprideofspices.com/sitemap.xml
 
 # Block common crawl bots from assets
 User-agent: *

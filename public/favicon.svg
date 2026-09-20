@@ -1,4 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="4" fill="#1A1A1A"/>
-  <text x="16" y="22" text-anchor="middle" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#C9A84C">P</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="8" fill="#018039"/>
+  <!-- P letterform -->
+  <path d="M8 26L8 7 Q8 5 10 5 Q20 5 22 11 Q24 17 18 20 Q15 21.5 10 21L10 26Z"
+    stroke="#F2F9F5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Leaf cluster -->
+  <path d="M14 13.5 C13 12 13 10 14 9.5 C15 10 15 12 14 13.5Z" fill="#F2F9F5" opacity="0.9"/>
+  <path d="M12.5 13 C11 12 11 10.5 12 10 C12.8 10.8 13 12 12.5 13Z" fill="#F2F9F5" opacity="0.75"/>
+  <path d="M15.5 13 C17 12 17 10.5 16 10 C15.2 10.8 15 12 15.5 13Z" fill="#F2F9F5" opacity="0.75"/>
 </svg>

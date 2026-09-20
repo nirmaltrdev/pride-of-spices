@@ -183,12 +183,12 @@ export function Scene1_Arrival() {
 
     const ctx = gsap.context(() => {
       if (!prefersReducedMotion) {
-        // Scene container starts exit at 0.09 and takes 0.08 to fade —
-        // this guarantees full overlap with Scene2 which enters at 0.11
+        // Scene container starts exit at 0.10 — exactly when Scene2 begins fading in.
+        // This ensures zero gap: as Scene1 starts fading out, Scene2 is already fading in.
         masterTimeline.fromTo(sceneRef.current,
           { opacity: 1, pointerEvents: 'auto', visibility: 'visible' },
           { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut' },
-          0.09
+          0.10
         );
 
         // Title wrapper rises and fades between 0 and 14% scroll
@@ -384,7 +384,7 @@ export function Scene1_Arrival() {
               opacity: 0,
               marginTop: 'clamp(1.75rem, 4vh, 2.75rem)',
             }}
-            onClick={() => scrollToPercent(0.15)}
+            onClick={() => scrollToPercent(0.15, false, true)}
             role="button"
             aria-label="Click to enter the experience"
           >

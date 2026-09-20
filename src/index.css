@@ -22,6 +22,8 @@ html {
   /* iOS Safari: prevent text size adjustment on rotation */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Prevent rubber-band scroll causing blank flashes on macOS Safari */
+  overscroll-behavior: none;
 }
 
 body {
@@ -77,12 +79,12 @@ img {
   -webkit-user-select: none;
 }
 
-/* ── Focus Visible — accessible + premium gold ring ── */
+/* ── Focus Visible — accessible + premium brand green ring ── */
 :focus-visible {
-  outline: 2px solid rgba(212, 147, 42, 0.8);
+  outline: 2px solid rgba(1, 128, 57, 0.85);
   outline-offset: 4px;
   border-radius: 2px;
-  box-shadow: 0 0 0 4px rgba(212, 147, 42, 0.12);
+  box-shadow: 0 0 0 4px rgba(1, 128, 57, 0.14);
 }
 
 /* ── Reduced Motion ── */
@@ -97,19 +99,19 @@ img {
   }
 }
 
-/* ── Custom Scrollbar — dark cinematic theme ── */
+/* ── Custom Scrollbar — brand green cinematic theme ── */
 ::-webkit-scrollbar {
   width: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(10, 15, 10, 0.6);
+  background: rgba(0, 73, 29, 0.25);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 147, 42, 0.22);
+  background: rgba(1, 128, 57, 0.35);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 147, 42, 0.45);
+  background: rgba(1, 128, 57, 0.6);
 }
 
 /* ── Eyebrow / Label Text — refined letter-spacing ── */
@@ -120,7 +122,7 @@ img {
   font-weight: 500;
   letter-spacing: clamp(0.22em, 0.32em, 0.38em);
   text-transform: uppercase;
-  color: rgba(212, 147, 42, 0.85);
+  color: rgba(1, 128, 57, 0.9);
 }
 
 /* ── Max-width containers ── */

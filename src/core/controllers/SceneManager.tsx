@@ -7,31 +7,40 @@ gsap.registerPlugin(ScrollTrigger);
 import { SceneContext } from './SceneContext';
 
 /**
- * SCENE MANAGER — v5 (Definitive Scroll Fix)
+ * SCENE MANAGER — v7 (Blank Screen Fix: Sticky Viewport Fade-Out)
  *
  * ROOT CAUSES FIXED:
  *
  * 1. scrub: 1 caused the animation to trail 1 full second behind scroll.
  *    Combined with Lenis's own easing, the user experienced ~2s of lag.
- *    FIX: scrub: 0.5 — animation catches up in 0.5s. Fast enough to feel
- *    responsive, slow enough to feel cinematic.
+ *    FIX: scrub: 0.15 — animation catches up in ~2 frames. Fast and cinematic.
  *
- * 2. The snap delay of 0.18s was appropriate but snap duration max of 1.0
- *    was too long and made the snap itself feel slow. FIX: max: 0.65.
+ * 2. SNAP REMOVED (was the primary source of scroll jitter):
+ *    ScrollTrigger snap fires 120ms after the user pauses scrolling and
+ *    forcibly tweens window.scrollY to a predetermined point. Lenis is
+ *    simultaneously applying its own easing to the same scroll position.
+ *    These two systems fighting over scroll position create the stutter /
+ *    "fighting the mouse wheel" sensation. Removing snap gives Lenis full
+ *    control and makes scrolling feel fluid and cinematic.
  *
- * 3. ScrollTrigger.refresh() after Preloader was racing with Lenis init.
- *    FIX: Handled in Preloader with a proper delay.
+ * 3. BLANK SCREEN FIX (sticky viewport fade-out):
+ *    The sticky inner div has background #021A0A and remained OPAQUE for
+ *    the full 800vh scroll height, even after all cinematic scenes had faded
+ *    to opacity:0. Scene5_Collection is outside SceneManager (in natural DOM
+ *    flow below it). The opaque sticky div was blocking it, causing a large
+ *    blank dark section before Collection was visible.
+ *    FIX: A dedicated ScrollTrigger fades stickyRef from opacity:1 → 0
+ *    between 88%→96% of SceneManager progress, revealing Collection below.
  *
  * SCROLL ARCHITECTURE:
- *   The SceneManager creates a tall (800vh) scroll container.
+ *   The SceneManager creates an 800vh tall scroll container.
  *   The inner div is position:sticky — it stays fixed in the viewport while
  *   the user scrolls through 800vh of scroll distance.
- *   ScrollTrigger maps the scroll progress (0 → 1) to the master timeline.
- *   scrub: N means the timeline playhead chases the scroll progress over N seconds.
+ *   ScrollTrigger maps scroll progress (0→1) to the master timeline.
+ *   scrub: N means the timeline playhead chases scroll progress over N seconds.
  *   All scenes inject their animations into this single master timeline.
  *
- * WHY 800vh AND NOT pin: true?
- *   We use a tall container + sticky div instead of ScrollTrigger's pin because:
+ * WHY TALL CONTAINER + STICKY AND NOT pin: true?
  *   - pin: true changes document height via pinSpacing, which conflicts with Lenis
  *   - Our sticky approach gives Lenis accurate scroll height from the start
  *   - No pinSpacing re-layout issues on resize
@@ -44,6 +53,7 @@ export function SceneManager({
   scrollHeight?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const stickyRef = useRef<HTMLDivElement>(null);
   const [masterTimeline, setMasterTimeline] = useState<gsap.core.Timeline | null>(null);
 
   useLayoutEffect(() => {
@@ -58,19 +68,10 @@ export function SceneManager({
           trigger: containerRef.current,
           start: 'top top',
           end: 'bottom bottom',
-          // scrub: 0.5 — animation catches up to scroll in 0.5 seconds.
-          // This is the sweet spot: feels responsive but not instant.
-          // scrub: 0 = instant (robotic), scrub: 1+ = laggy/stuck feeling.
-          scrub: 0.5,
-          snap: {
-            // Snap points for 6 scene folds in the 800vh container
-            snapTo: [0.0, 0.18, 0.40, 0.60, 0.77, 1.0],
-            // Duration: how long the snap animation takes to complete
-            duration: { min: 0.4, max: 0.65 },
-            // Delay: wait for Lenis easing to settle (~300ms) before snapping
-            delay: 0.25,
-            ease: 'power2.inOut',
-          },
+          // scrub: 0.15 — very fast catch-up eliminates animation-behind-scroll lag.
+          // At 0.15s, even fast wheel flicks are caught within ~2 frames.
+          // NO snap: snap conflicted with Lenis causing visible jitter on every scroll pause.
+          scrub: 0.15,
           invalidateOnRefresh: true,
         },
         defaults: { ease: 'none' },
@@ -79,6 +80,36 @@ export function SceneManager({
       // Placeholder to give timeline a 0→1 range
       tl.to({}, { duration: 1.0 });
       setMasterTimeline(tl);
+
+      // ── STICKY VIEWPORT FADE-OUT ────────────────────────────────────────────
+      // ROOT CAUSE: After all cinematic scenes exit at ~0.88 progress, the sticky
+      // viewport div (background: #021A0A) remains OPAQUE and blocks the Collection
+      // section below it in the DOM. This is why users saw a large blank dark screen
+      // before "The Collection" heading appeared.
+      //
+      // FIX: A separate ScrollTrigger fades the entire sticky viewport to opacity:0
+      // between 88%→96% of the SceneManager container's scroll travel.
+      // Once transparent, the Collection section (in natural page flow below) shows
+      // through. The fade mirrors Scene4_5's own exit timing for a seamless handoff.
+      if (stickyRef.current) {
+        gsap.fromTo(
+          stickyRef.current,
+          { opacity: 1 },
+          {
+            opacity: 0,
+            ease: 'power2.in',
+            scrollTrigger: {
+              trigger: containerRef.current,
+              // "88% top" = when the SceneManager's 88% mark reaches the top of viewport
+              start: '88% top',
+              // "96% top" = fully faded by the 96% mark
+              end: '96% top',
+              scrub: 0.1,
+              invalidateOnRefresh: true,
+            },
+          }
+        );
+      }
     }, containerRef);
 
     return () => {
@@ -90,14 +121,19 @@ export function SceneManager({
   // Debounced resize + orientation handler
   useEffect(() => {
     let rafId: number;
+    let debounceTimer: ReturnType<typeof setTimeout>;
+
     const onResize = () => {
       cancelAnimationFrame(rafId);
-      // Double-RAF: wait two frames for layout to fully settle after resize
-      rafId = requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          ScrollTrigger.refresh();
+      clearTimeout(debounceTimer);
+      // Debounce 150ms first, then wait two frames for layout to fully settle
+      debounceTimer = setTimeout(() => {
+        rafId = requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            ScrollTrigger.refresh();
+          });
         });
-      });
+      }, 150);
     };
 
     window.addEventListener('resize', onResize, { passive: true });
@@ -105,6 +141,7 @@ export function SceneManager({
 
     return () => {
       cancelAnimationFrame(rafId);
+      clearTimeout(debounceTimer);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('orientationchange', onResize);
     };
@@ -114,14 +151,19 @@ export function SceneManager({
     <SceneContext.Provider value={{ masterTimeline }}>
       <div
         ref={containerRef}
-        className="relative w-full bg-charcoal"
-        style={{ height: scrollHeight }}
+        className="relative w-full"
+        style={{ height: scrollHeight, background: '#021A0A' }}
       >
-        {/* 100dvh sticky viewport — scenes animate inside this fixed window */}
+        {/* 100dvh sticky viewport — scenes animate inside this fixed window.
+            stickyRef is used by a dedicated ScrollTrigger to fade the entire
+            viewport to opacity:0 at 88%→96% progress. This reveals the
+            Collection section below in the DOM, eliminating the blank dark screen. */}
         <div
-          className="sticky top-0 left-0 w-full overflow-hidden bg-charcoal"
+          ref={stickyRef}
+          className="sticky top-0 left-0 w-full overflow-hidden"
           style={{
             height: '100dvh',
+            background: '#021A0A',
             // 3D context for parallax depth
             perspective: '1200px',
             transformStyle: 'preserve-3d',

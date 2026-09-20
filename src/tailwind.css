@@ -5,29 +5,37 @@
    ═══════════════════════════════════════════════════════════ */
 
 @theme {
-  /* ── Brand Colors ── */
+  /* ── Official Brand Colors (from brand identity kit) ── */
+  --color-brand-primary: #018039;      /* Primary forest green */
+  --color-brand-secondary: #36C12B;   /* Vibrant leaf green */
+  --color-brand-tertiary: #00491D;    /* Deep forest tertiary */
+  --color-brand-black: #121614;       /* Near-black with green undertone */
+  --color-brand-white: #F2F9F5;       /* Organic off-white */
+  --color-brand-neutral: #D6D9E0;     /* Cool neutral grey */
+
+  /* ── Cinematic Experience Palette (dark forest aesthetic) ── */
   --color-terracotta: #C2452D;
   --color-terracotta-dark: #9B3624;
   --color-terracotta-light: #D4674F;
   --color-turmeric: #D4932A;
   --color-turmeric-dark: #B07A1E;
   --color-turmeric-light: #E8B44D;
-  --color-forest: #2D5016;
-  --color-forest-dark: #1E3A0E;
-  --color-forest-light: #3D6B1E;
-  --color-forest-muted: #4A7C2E;
-  --color-charcoal: #1A1A1A;
-  --color-charcoal-light: #2D2D2D;
-  --color-cream: #FDF6EC;
-  --color-cream-dark: #F5EBD9;
-  --color-ivory: #FAF3E8;
+  --color-forest: #018039;            /* Updated to match brand primary */
+  --color-forest-dark: #00491D;       /* Updated to match brand tertiary */
+  --color-forest-light: #36C12B;      /* Updated to match brand secondary */
+  --color-forest-muted: #2D6B2E;
+  --color-charcoal: #121614;          /* Updated to brand black */
+  --color-charcoal-light: #1E2420;
+  --color-cream: #F2F9F5;             /* Updated to brand white */
+  --color-cream-dark: #E8F0EB;
+  --color-ivory: #F5F5EF;
   --color-gold: #C9A84C;
   --color-gold-light: #DBBF6A;
   --color-gold-dark: #A88B3A;
-  --color-mist: rgba(255, 255, 248, 0.6);
+  --color-mist: rgba(242, 249, 245, 0.6);
   --color-honey: #D4932A;
   --color-pepper: #2D2017;
-  --color-cardamom: #5A7247;
+  --color-cardamom: #018039;          /* Updated to brand primary */
 
   /* ── Typography ── */
   --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;

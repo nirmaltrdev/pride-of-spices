@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" fill="none">
+  <!-- P letterform outer arc -->
+  <path
+    d="M20 150 L20 30 Q20 10 40 10 Q85 10 95 45 Q105 75 80 90 Q65 98 40 96 L40 150 Z"
+    stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"
+    fill="none"
+  />
+  <!-- Inner leaf cluster in the P bowl -->
+  <g transform="translate(52, 52)">
+    <!-- Center leaf -->
+    <path d="M0 -16 C-6 -8 -6 8 0 12 C6 8 6 -8 0 -16Z" fill="currentColor" opacity="0.9"/>
+    <!-- Left leaf -->
+    <path d="M-10 -8 C-16 -2 -12 10 -4 10 C-4 4 -4 -4 -10 -8Z" fill="currentColor" opacity="0.75"/>
+    <!-- Right leaf -->
+    <path d="M10 -8 C16 -2 12 10 4 10 C4 4 4 -4 10 -8Z" fill="currentColor" opacity="0.75"/>
+    <!-- Stem -->
+    <line x1="0" y1="12" x2="0" y2="20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <!-- Organic Essence arc text (simplified as straight label) -->
+  <text
+    x="60" y="148"
+    text-anchor="middle"
+    font-family="'Inter', system-ui, sans-serif"
+    font-size="7"
+    font-weight="600"
+    letter-spacing="0.18em"
+    fill="currentColor"
+    opacity="0.65"
+    text-transform="uppercase"
+  >ORGANIC ESSENCE</text>
+</svg>

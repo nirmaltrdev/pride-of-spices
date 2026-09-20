@@ -43,16 +43,29 @@ export function getLenisInstance(): Lenis | null {
 }
 
 /**
- * Scroll to a percentage position of the document using Lenis's proper API.
+ * Scroll to a percentage position using Lenis's proper API.
  *
  * This REPLACES all `window.scrollTo()` calls in navigation components.
  *
- * @param pct      - Scroll percentage (0.0 = top, 1.0 = bottom)
- * @param immediate - If true, jump instantly without animation
+ * @param pct                  - Scroll percentage (0.0 = top, 1.0 = bottom)
+ * @param immediate            - If true, jump instantly without animation
+ * @param sceneManagerRelative - If true, resolve pct relative to SceneManager height
+ *                               (750vh = window.innerHeight * 7.5) instead of the full
+ *                               document scrollHeight. Use this for all cinematic scene
+ *                               nav links where the masterTimeline 0.0–1.0 range maps to
+ *                               the 750vh SceneManager container, NOT the full page.
+ *                               DEFAULT: false (uses total document scrollHeight).
  */
-export function scrollToPercent(pct: number, immediate = false): void {
-  const maxScroll =
-    document.documentElement.scrollHeight - window.innerHeight;
+export function scrollToPercent(pct: number, immediate = false, sceneManagerRelative = false): void {
+  let maxScroll: number;
+
+  if (sceneManagerRelative) {
+    // SceneManager is 800vh. masterTimeline 0.0–1.0 maps to this range.
+    maxScroll = window.innerHeight * 8.0; // 800vh
+  } else {
+    maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  }
+
   const target = Math.round(maxScroll * Math.max(0, Math.min(1, pct)));
 
   if (_lenis) {
@@ -71,6 +84,7 @@ export function scrollToPercent(pct: number, immediate = false): void {
     });
   }
 }
+
 
 /**
  * Pause Lenis smooth scrolling (e.g. when an overlay/modal is open).

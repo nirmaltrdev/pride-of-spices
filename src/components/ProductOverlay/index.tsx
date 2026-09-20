@@ -55,7 +55,11 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
     quantity: '',
     message: '',
   });
+  const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; country?: string }>({});
   const [submitted, setSubmitted] = useState(false);
+
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 
   useEffect(() => {
     let ctx: gsap.Context | null = null;
@@ -63,6 +67,8 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
     if (product && overlayRef.current && contentRef.current) {
       setShowInquiry(false);
       setSubmitted(false);
+      setFormState({ name: '', email: '', country: '', quantity: '', message: '' });
+      setFormErrors({});
 
       // Guarantees visibility is active by default
       if (overlayRef.current) gsap.set(overlayRef.current, { opacity: 1 });
@@ -115,11 +121,39 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!product) return;
-    const subject = encodeURIComponent(`Order / Allocation Request: ${product.name} — ${formState.name}`);
+
+    // Validate all required fields
+    const errors: { name?: string; email?: string; country?: string } = {};
+    const trimmedName = formState.name.trim();
+    const trimmedEmail = formState.email.trim();
+    const trimmedCountry = formState.country.trim();
+
+    if (!trimmedName) {
+      errors.name = 'Please enter your full name.';
+    }
+    if (!trimmedEmail) {
+      errors.email = 'Please enter your email address.';
+    } else if (!isValidEmail(trimmedEmail)) {
+      errors.email = 'Please enter a valid email (e.g. name@domain.com).';
+    }
+    if (!trimmedCountry) {
+      errors.country = 'Please enter your country.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      if (errors.name) document.getElementById('inquiry-name')?.focus();
+      else if (errors.email) document.getElementById('inquiry-email')?.focus();
+      else if (errors.country) document.getElementById('inquiry-country')?.focus();
+      return;
+    }
+
+    setFormErrors({});
+    const subject = encodeURIComponent('Order / Allocation Request: ' + product.name + ' - ' + trimmedName);
     const body = encodeURIComponent(
-      `Product: ${product.name}\nName: ${formState.name}\nEmail: ${formState.email}\nCountry: ${formState.country}\nEstimated Quantity: ${formState.quantity || 'Standard'}\n\nMessage / Notes:\n${formState.message || 'I would like to inquire about ordering this spice.'}`
+      'Product: ' + product.name + '\nName: ' + trimmedName + '\nEmail: ' + trimmedEmail + '\nCountry: ' + trimmedCountry + '\nEstimated Quantity: ' + (formState.quantity.trim() || 'Standard') + '\n\nMessage / Notes:\n' + (formState.message.trim() || 'I would like to inquire about ordering this spice.')
     );
-    window.location.href = `mailto:theprideofspices12@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = 'mailto:theprideofspices12@gmail.com?subject=' + subject + '&body=' + body;
     setSubmitted(true);
   };
 
@@ -597,11 +631,14 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                       type="text"
                       required
                       value={formState.name}
-                      onChange={e => setFormState(s => ({ ...s, name: e.target.value }))}
+                      onChange={e => { setFormState(s => ({ ...s, name: e.target.value })); setFormErrors(prev => ({ ...prev, name: undefined })); }}
                       style={inputStyle}
                       onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
                       onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
                     />
+                    {formErrors.name && (
+                      <p role="alert" className="font-sans" style={{ fontSize: '0.7rem', color: 'rgba(255,100,80,0.92)', marginTop: '0.35rem', letterSpacing: '0.04em' }}>{formErrors.name}</p>
+                    )}
                   </div>
                   <div>
                     <label
@@ -616,11 +653,14 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                       type="email"
                       required
                       value={formState.email}
-                      onChange={e => setFormState(s => ({ ...s, email: e.target.value }))}
+                      onChange={e => { setFormState(s => ({ ...s, email: e.target.value })); setFormErrors(prev => ({ ...prev, email: undefined })); }}
                       style={inputStyle}
                       onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
                       onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
                     />
+                    {formErrors.email && (
+                      <p role="alert" className="font-sans" style={{ fontSize: '0.7rem', color: 'rgba(255,100,80,0.92)', marginTop: '0.35rem', letterSpacing: '0.04em' }}>{formErrors.email}</p>
+                    )}
                   </div>
                 </div>
 
@@ -638,11 +678,14 @@ export function ProductOverlay({ product, onClose }: ProductOverlayProps) {
                       type="text"
                       required
                       value={formState.country}
-                      onChange={e => setFormState(s => ({ ...s, country: e.target.value }))}
+                      onChange={e => { setFormState(s => ({ ...s, country: e.target.value })); setFormErrors(prev => ({ ...prev, country: undefined })); }}
                       style={inputStyle}
                       onFocus={e => Object.assign((e.currentTarget as HTMLElement).style, inputFocusStyle)}
                       onBlur={e => Object.assign((e.currentTarget as HTMLElement).style, inputBlurStyle)}
                     />
+                    {formErrors.country && (
+                      <p role="alert" className="font-sans" style={{ fontSize: '0.7rem', color: 'rgba(255,100,80,0.92)', marginTop: '0.35rem', letterSpacing: '0.04em' }}>{formErrors.country}</p>
+                    )}
                   </div>
                   <div>
                     <label

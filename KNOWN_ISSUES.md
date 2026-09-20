@@ -50,3 +50,25 @@ This document tracks all known, blocked, deferred, fixed, and rejected issues in
 - Issue 2: GSAP Empty Target Warnings (Audio Controller) (Date Fixed: 2026-07-05)
 - Issue 3: Duplicate SceneManager Code Smell (Date Fixed: 2026-07-05)
 - Issue 4: StrictMode Sub-Timeline Leak (Date Fixed: 2026-07-05)
+
+*(Milestone 2 — Scroll & Blank Screen Deep Fix: 2026-09-10)*
+- Issue 10: Scroll Jitter / "Fighting the Mouse Wheel"
+  - **Root Cause:** GSAP `ScrollTrigger snap` was firing 120ms after every scroll pause, forcibly tweening `window.scrollY` to a snap point while Lenis simultaneously applied its own easing to the same position. Two systems fighting over the same value = visible stutter.
+  - **Fix:** Removed `snap` entirely from `SceneManager.tsx`. Lenis now has full control. `scrub: 0.15` keeps animation tightly coupled to scroll without lag.
+
+- Issue 11: Blank Screen Between Wild Honey & Collection
+  - **Root Cause (a):** Scene 4.5 faded all children to `opacity: 0` at `0.88` scroll progress but kept the container visible until `0.98`, leaving 0.10 progress (≈80vh) of dead blank screen.
+  - **Root Cause (b):** SceneManager was `800vh` but last `~96vh` of that had nothing visible in any scene.
+  - **Fix:** Pushed Scene 4.5 exit from `0.88 → 0.94`, reduced SceneManager from `800vh → 750vh` in both `SceneManager.tsx` (default) and `ExperienceShell.tsx` (explicit).
+
+- Issue 12: Nav Buttons Landing in Wrong Scenes
+  - **Root Cause:** `scrollToPct(pct)` called `scrollToPercent(pct)` which used `total_document_scrollHeight` (~1050vh) as its denominator, but `masterTimeline` positions are relative to `SceneManager` height (750vh). "The Harvest" button (pct=0.58) was scrolling to `0.58 * 1050 = 609vh` instead of `0.58 * 750 = 435vh`.
+  - **Fix:** `CinematicNav.scrollToPct()` now uses `window.innerHeight * 7.5` (750vh) as the denominator. `scrollToPercent()` gained a `sceneManagerRelative` parameter. `handleScroll` uses consistent 750vh reference for nav state + progress bar.
+
+- Issue 13: Blank Product Grid (Scene 5 Collection)
+  - **Root Cause:** `IntersectionObserver` was used to trigger the reveal animation. On nav-click jumps the section was already in the viewport when the observer was set up, causing the callback to never fire in some cases. The 2500ms fallback was too long — users saw 2.5s of blank content.
+  - **Fix:** Added immediate viewport check via `getBoundingClientRect` after `observer.observe()`. Reduced fallback from 2500ms to 300ms.
+
+- Issue 14: Custom Cursor Disappearing Behind Product Overlay
+  - **Root Cause:** `ProductOverlay` uses `zIndex: 100000` (inline style). The cursor used Tailwind `z-[9999]` and `z-[9998]` class-based rules which lose to inline styles in specificity — cursor was rendered beneath the overlay.
+  - **Fix:** Switched cursor elements to inline `style={{ zIndex: 200001 / 200000 }}` so they always render above any overlay, modal, or nav layer.

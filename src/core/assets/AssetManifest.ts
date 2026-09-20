@@ -317,6 +317,10 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/ginger.jpg',
+    optimizedSources: {
+      avif: '/images/optimized/ginger.avif',
+      webp: '/images/optimized/ginger.webp',
+    },
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -329,6 +333,10 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/coriander.jpg',
+    optimizedSources: {
+      avif: '/images/optimized/coriander.avif',
+      webp: '/images/optimized/coriander.webp',
+    },
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',
@@ -353,6 +361,10 @@ export const Assets: Record<string, AssetDefinition> = {
     category: AssetCategory.Product,
     type: 'image',
     source: '/images/crushed_pepper.jpg',
+    optimizedSources: {
+      avif: '/images/optimized/crushed_pepper.avif',
+      webp: '/images/optimized/crushed_pepper.webp',
+    },
     preloadStage: 5,
     priority: 'low',
     loadingStrategy: 'lazy',

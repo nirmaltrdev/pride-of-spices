@@ -55,15 +55,15 @@ export function useLenis() {
     if (isMobilePhone) return;
 
     const lenis = new Lenis({
-      // 0.9 duration: responsive enough to not feel "stuck",
-      // but with enough glide to feel cinematic.
-      // The user's request was clear: don't make scroll artificially slow.
-      duration: 0.9,
+      // 0.75 duration: fast enough to feel responsive on quick scrolls,
+      // still smooth enough for cinematic pacing.
+      // Reduced from 0.9 — eliminates the "stuck/trailing" feeling on fast swipes.
+      duration: 0.75,
       // Exponential ease-out: fast initial response, smooth deceleration
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      // 1.0 = natural wheel multiplier, no amplification or reduction
-      wheelMultiplier: 1.0,
+      // 1.1 = slight amplification for better desktop trackpad feel
+      wheelMultiplier: 1.1,
       infinite: false,
     });
 
@@ -98,7 +98,6 @@ export function useLenis() {
       lenisRef.current = null;
       setLenisInstance(null);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefersReducedMotion]);
 
   return lenisRef;

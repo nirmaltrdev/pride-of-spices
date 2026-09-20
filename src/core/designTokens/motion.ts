@@ -1,4 +1,4 @@
-import { Easing } from 'framer-motion';
+
 
 export const motion = {
   easing: {

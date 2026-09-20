@@ -2,20 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://www.prideofspices.com/</loc>
+    <loc>https://www.theprideofspices.com/</loc>
     <lastmod>2026-07-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://www.prideofspices.com/images/hero_bg.png</image:loc>
+      <image:loc>https://www.theprideofspices.com/images/hero_bg.png</image:loc>
       <image:title>The Pride of Spices — Heritage Spices from Wayanad</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://www.prideofspices.com/images/black_pepper.jpg</image:loc>
+      <image:loc>https://www.theprideofspices.com/images/black_pepper.jpg</image:loc>
       <image:title>Premium Black Pepper from Wayanad Biosphere Reserve</image:title>
     </image:image>
     <image:image>
-      <image:loc>https://www.prideofspices.com/images/forest_honey.jpg</image:loc>
+      <image:loc>https://www.theprideofspices.com/images/forest_honey.jpg</image:loc>
       <image:title>Wild Forest Honey — Nilgiri Biosphere</image:title>
     </image:image>
   </url>

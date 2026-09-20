@@ -68,7 +68,7 @@ export function Preloader({ onComplete }: PreloaderProps) {
     <div
       className="fixed inset-0 z-[999] flex flex-col items-center justify-center"
       style={{
-        background: '#0D0E0B',
+        background: '#0A120C',
         opacity: fadeOut ? 0 : 1,
         transition: 'opacity 0.75s cubic-bezier(0.22, 0.61, 0.36, 1)',
         pointerEvents: fadeOut ? 'none' : 'auto',
@@ -91,59 +91,80 @@ export function Preloader({ onComplete }: PreloaderProps) {
         }}
       />
 
+      {/* Ambient brand green glow */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '45vmin',
+          height: '45vmin',
+          background: 'radial-gradient(circle, rgba(1,128,57,0.10) 0%, transparent 70%)',
+          filter: 'blur(50px)',
+          pointerEvents: 'none',
+        }}
+      />
+
       {/* Central content */}
       <div className="relative flex flex-col items-center text-center">
-        {/* Subtle ambient glow */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '40vmin',
-            height: '40vmin',
-            background: 'radial-gradient(circle, rgba(212,147,42,0.08) 0%, transparent 70%)',
-            filter: 'blur(40px)',
-            pointerEvents: 'none',
-          }}
-        />
+        {/* Official SVG Logo Mark */}
+        <div style={{ marginBottom: 'clamp(1.25rem, 3vh, 2rem)' }}>
+          <img
+            src="/images/logo.svg"
+            alt="The Pride of Spices logo"
+            style={{
+              width: 'clamp(52px, 10vmin, 72px)',
+              height: 'auto',
+              color: '#018039',
+              filter: 'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
+              opacity: 0.85,
+            }}
+            aria-hidden="true"
+          />
+        </div>
 
-        {/* Brand mark */}
-        <div style={{ marginBottom: 'clamp(2.5rem, 6vh, 4rem)' }}>
+        {/* Brand wordmark */}
+        <div style={{ marginBottom: 'clamp(2rem, 5vh, 3.5rem)' }}>
           <p
-            className="font-sans text-cream/30 tracking-[0.48em] uppercase"
-            style={{ fontSize: 'clamp(0.58rem, 1.2vw, 0.68rem)', marginBottom: '1.25rem' }}
+            className="font-sans tracking-[0.48em] uppercase"
+            style={{
+              fontSize: 'clamp(0.58rem, 1.2vw, 0.68rem)',
+              marginBottom: '1.25rem',
+              color: 'rgba(1,128,57,0.65)',
+            }}
           >
             From the Heart of Wayanad
           </p>
           <h1
-            className="font-serif text-cream"
+            className="font-serif"
             style={{
               fontSize: 'clamp(2rem, 6vw, 3.5rem)',
               lineHeight: 0.93,
               letterSpacing: '-0.015em',
+              color: '#F2F9F5',
             }}
           >
             The Pride
             <br />
             <span
               className="italic"
-              style={{ color: '#D4932A', fontSize: '0.78em' }}
+              style={{ color: '#018039', fontSize: '0.78em' }}
             >
               of Spices
             </span>
           </h1>
         </div>
 
-        {/* Progress bar */}
+        {/* Progress bar — brand green */}
         <div
           style={{
             position: 'relative',
             overflow: 'hidden',
             width: 'clamp(120px, 28vw, 220px)',
             height: '1px',
-            background: 'rgba(255,255,255,0.08)',
+            background: 'rgba(1,128,57,0.14)',
           }}
           role="progressbar"
           aria-valuenow={progress}
@@ -157,10 +178,10 @@ export function Preloader({ onComplete }: PreloaderProps) {
               inset: 0,
               transformOrigin: 'left',
               width: `${progress}%`,
-              backgroundColor: isReady ? 'rgba(212,147,42,0.95)' : 'transparent',
+              backgroundColor: isReady ? 'rgba(1,128,57,0.95)' : 'transparent',
               backgroundImage: isReady
                 ? 'none'
-                : 'linear-gradient(90deg, rgba(212,147,42,0.5) 0%, rgba(212,147,42,0.9) 50%, rgba(212,147,42,0.5) 100%)',
+                : 'linear-gradient(90deg, rgba(1,128,57,0.4) 0%, rgba(54,193,43,0.85) 50%, rgba(1,128,57,0.4) 100%)',
               backgroundSize: '200% 100%',
               animation: isReady ? 'none' : 'shimmer 2s linear infinite',
               transition: 'width 0.25s ease',
@@ -170,8 +191,12 @@ export function Preloader({ onComplete }: PreloaderProps) {
 
         {/* Loading label */}
         <p
-          className="font-sans text-cream/22 tracking-[0.3em] uppercase"
-          style={{ fontSize: '0.58rem', marginTop: '1.5rem' }}
+          className="font-sans tracking-[0.3em] uppercase"
+          style={{
+            fontSize: '0.58rem',
+            marginTop: '1.5rem',
+            color: 'rgba(242,249,245,0.25)',
+          }}
         >
           {progress < 100 ? 'Entering the forest\u2026' : 'Ready'}
         </p>

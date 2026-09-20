@@ -46,7 +46,7 @@ export function Scene3_Discovery() {
         return;
       }
 
-      // === ENTRY at 24% scroll (overlaps Scene2 exit which runs 0.24–0.32) ===
+      // === ENTRY at 24% scroll — 0.08 overlap with Scene2 exit which runs 0.24–0.32 ===
       masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden' }, { opacity: 1, pointerEvents: 'auto', visibility: 'visible', duration: 0.08, ease: 'power2.inOut' }, 0.24);
 
       // Wide plantation background — starts blurry (focus rack)
@@ -125,7 +125,7 @@ export function Scene3_Discovery() {
         0.47
       );
 
-      // === SCENE EXIT: starts at 0.52, runs 0.08 — overlaps Scene4 entry at 0.52 ===
+      // === SCENE EXIT: starts at 0.52, runs 0.08 — overlaps Scene4 entry at 0.50 ===
       masterTimeline.to(lifecycleTextRef.current, { opacity: 0, duration: 0.04 }, 0.52);
       masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', visibility: 'hidden', duration: 0.08, ease: 'power1.inOut' }, 0.52);
     }, sceneRef);
