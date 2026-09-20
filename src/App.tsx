@@ -8,8 +8,13 @@ import { Scene4_5_Honey } from './scenes/Scene4_5_Honey';
 import { Scene5_Collection } from './scenes/Scene5_Collection';
 import { Preloader } from './components/Preloader';
 import { CustomCursor } from './components/CustomCursor';
+import { DebugOverlay } from './components/DebugOverlay';
 import { useLenis } from './hooks/useLenis';
 import { useRuntimeDiagnostics } from './hooks/useRuntimeDiagnostics';
+
+// Enable debug overlay via ?debug=1 — works on localhost AND Vercel Preview
+const IS_DEBUG = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
+
 
 /**
  * THE PRIDE OF SPICES — Version 2
@@ -60,8 +65,12 @@ function App() {
       {/* Scene 5: The Collection — lives outside the sticky cinematic scroll,
           in natural page flow so its content is fully scrollable */}
       <Scene5_Collection />
+
+      {/* Live runtime debug overlay — activate via ?debug=1 (works on Vercel Preview too) */}
+      {IS_DEBUG && <DebugOverlay />}
     </>
   );
+
 }
 
 export default App;

@@ -50,9 +50,11 @@ export function SceneManager({
           trigger: containerRef.current,
           start: 'top top',
           end: 'bottom bottom',
-          // scrub: true — animation locked precisely to Lenis scroll position.
-          // Lenis handles the easing; scrub:true gives frame-perfect sync.
-          scrub: true,
+          // scrub: 0.5 — adds 500ms smoothing to the timeline position relative to scroll.
+          // This prevents blank frames during rapid reverse-scrolls where the scroll
+          // position jumps faster than the timeline can update scene crossfades.
+          // Lenis provides additional easing on top of this.
+          scrub: 0.5,
           invalidateOnRefresh: true,
         },
         defaults: { ease: 'none' },
@@ -120,8 +122,10 @@ export function SceneManager({
           style={{
             height: '100dvh',
             background: '#021A0A',
-            perspective: '1200px',
-            transformStyle: 'preserve-3d',
+            // NOTE: perspective and transformStyle:'preserve-3d' were removed.
+            // These triggered GPU compositing bugs on Chrome with certain DPR/zoom
+            // configurations, causing scenes to flicker/blank on reverse scroll.
+            // 3D parallax effects still work via individual scene transforms.
           }}
         >
           {children}
