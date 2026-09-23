@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { AssetLoader } from '@/core/assets/AssetLoader';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+import { recordInitEvent } from '../core/telemetry/initEvents';
+
 interface PreloaderProps {
   onComplete: () => void;
 }
@@ -23,6 +25,14 @@ export function Preloader({ onComplete }: PreloaderProps) {
 
   useEffect(() => {
     let isActive = true;
+
+    // Track individual readiness events
+    AssetLoader.preloadStage(1).then(() => {
+      if (isActive) recordInitEvent('critical images ready');
+    });
+    document.fonts.ready.then(() => {
+      if (isActive) recordInitEvent('fonts ready');
+    });
 
     // Minimum display time for a premium loading experience
     const minTime = new Promise<void>(resolve => setTimeout(resolve, 1400));
@@ -60,12 +70,35 @@ export function Preloader({ onComplete }: PreloaderProps) {
         setTimeout(() => {
           onComplete();
           setTimeout(() => {
+            // ── AUTHORITATIVE LAYOUT REFRESH ──────────────────────────────────────
+            // This is the ONE and ONLY ScrollTrigger.refresh() that fires after:
+            //   - all scene tweens are registered in the master timeline
+            //   - fonts are loaded (no layout shift after this point)
+            //   - DOM layout is fully settled
+            // SceneManager listens for 'pride:refresh-complete' and performs a
+            // single authoritative timeline sync using the post-refresh ST progress.
+            if (import.meta.env.DEV) {
+              console.log(
+                '%c[POPS INIT] refresh source=Preloader',
+                'color: #10B981; font-weight: bold;'
+              );
+            }
+            recordInitEvent('[POPS INIT] refresh source=Preloader');
             ScrollTrigger.refresh();
+            if (import.meta.env.DEV) {
+              console.log(
+                '%c[POPS INIT] refresh complete',
+                'color: #10B981; font-weight: bold;'
+              );
+            }
+            // Signal SceneManager to perform the authoritative timeline sync.
+            window.dispatchEvent(new CustomEvent('pride:refresh-complete'));
             // Warm-load product catalogue in the background so grid cards are cached ahead of scroll
             AssetLoader.preloadStage(3);
             setTimeout(() => AssetLoader.preloadStage(5), 1000);
           }, 200);
         }, 750);
+
       }, 450);
     });
 
@@ -148,7 +181,7 @@ export function Preloader({ onComplete }: PreloaderProps) {
           >
             From the Heart of Wayanad
           </p>
-          <h1
+          <p
             className="font-serif"
             style={{
               fontSize: 'clamp(2rem, 6vw, 3.5rem)',
@@ -165,7 +198,7 @@ export function Preloader({ onComplete }: PreloaderProps) {
             >
               of Spices
             </span>
-          </h1>
+          </p>
         </div>
 
         {/* Progress bar — brand green */}

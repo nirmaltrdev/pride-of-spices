@@ -198,6 +198,12 @@ export function Scene5_Collection() {
       gsap.set(lightRef.current, { opacity: 0.42, scale: 1.0 });
 
       if (prefersReducedMotion) {
+        gsap.set([headerRef.current, footerRef.current, productItems], {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          clearProps: 'willChange',
+        });
         return;
       }
 
@@ -255,7 +261,16 @@ export function Scene5_Collection() {
   }, [prefersReducedMotion]);
 
   useEffect(() => {
-    if (!sceneRef.current || prefersReducedMotion) return;
+    if (!sceneRef.current) return;
+
+    if (prefersReducedMotion) {
+      const sel = gsap.utils.selector(sceneRef);
+      const productItems = sel('[data-product-item]');
+      if (headerRef.current) gsap.set(headerRef.current, { opacity: 1, y: 0, scale: 1 });
+      if (footerRef.current) gsap.set(footerRef.current, { opacity: 1, y: 0 });
+      if (productItems.length) gsap.set(productItems, { opacity: 1, y: 0, scale: 1 });
+      return;
+    }
 
     const el = sceneRef.current;
     let fired = false;
@@ -818,7 +833,7 @@ export function Scene5_Collection() {
         >
           {[
             { num: '13', label: 'Heritage Products' },
-            { num: '1000m+', label: 'Elevation' },
+            { num: '800m+', label: 'Elevation' },
             { num: '3rd Gen', label: 'Farmers' },
             { num: 'Raw', label: 'Unprocessed' },
           ].map(stat => (

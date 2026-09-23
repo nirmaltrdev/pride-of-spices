@@ -19,7 +19,7 @@ import { Assets } from '../assets/AssetManifest';
  *   0.82 → Dark night/lantern     (Scene 5: Collection)
  */
 export function EnvironmentController() {
-  const { masterTimeline } = useMasterTimeline();
+  const { masterTimeline, registerScene, unregisterScene } = useMasterTimeline();
   const prefersReducedMotion = useReducedMotion();
 
   const bgRef = useRef<HTMLDivElement>(null);
@@ -28,7 +28,10 @@ export function EnvironmentController() {
 
   useLayoutEffect(() => {
     if (!masterTimeline || !bgRef.current) return;
-    if (prefersReducedMotion) return;
+    if (prefersReducedMotion) {
+      registerScene('environment');
+      return () => unregisterScene('environment');
+    }
 
     const ctx = gsap.context(() => {
       // 1. Subtle background scale push throughout journey (GPU transform only)
@@ -43,7 +46,7 @@ export function EnvironmentController() {
       // 2. Atmosphere fade transitions (opacity only — no mix-blend-mode paint storms)
       masterTimeline.fromTo(atmosphereRef.current,
         { opacity: 0.2 },
-        { opacity: 0.6, duration: 0.4, ease: 'power1.inOut' },
+        { opacity: 0.6, duration: 0.4, ease: 'power1.inOut', immediateRender: false },
         0.30
       );
       masterTimeline.to(atmosphereRef.current,
@@ -65,8 +68,13 @@ export function EnvironmentController() {
       }, 0.78);
     });
 
-    return () => ctx.revert();
-  }, [masterTimeline, prefersReducedMotion]);
+    registerScene('environment');
+
+    return () => {
+      ctx.revert();
+      unregisterScene('environment');
+    };
+  }, [masterTimeline, prefersReducedMotion, registerScene, unregisterScene]);
 
   return (
     <div

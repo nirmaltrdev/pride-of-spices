@@ -12,9 +12,10 @@ import { DebugOverlay } from './components/DebugOverlay';
 import { useLenis } from './hooks/useLenis';
 import { useRuntimeDiagnostics } from './hooks/useRuntimeDiagnostics';
 
+import { recordInitEvent } from './core/telemetry/initEvents';
+
 // Enable debug overlay via ?debug=1 — works on localhost AND Vercel Preview
 const IS_DEBUG = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === '1';
-
 
 /**
  * THE PRIDE OF SPICES — Version 2
@@ -28,7 +29,15 @@ const IS_DEBUG = typeof window !== 'undefined' && new URLSearchParams(window.loc
  */
 function App() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const handlePreloadComplete = useCallback(() => setIsLoaded(true), []);
+
+  React.useEffect(() => {
+    recordInitEvent('React mounted');
+  }, []);
+
+  const handlePreloadComplete = useCallback(() => {
+    recordInitEvent('application ready');
+    setIsLoaded(true);
+  }, []);
 
   // Initialize Lenis for cinematic smooth scrolling (after load)
   useLenis();

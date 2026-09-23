@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { getLenisInstance } from '../core/lenisInstance';
 import { safeStorage } from '../core/storage/safeStorage';
+import { getInitEvents, InitEvent } from '../core/telemetry/initEvents';
 
 /**
  * DEBUG OVERLAY — Live Runtime Diagnostic Panel
@@ -23,8 +24,8 @@ interface SceneState {
 
 interface StorageState {
   isAvailable: boolean;
-  mutedValue: string | null;
-  parsedMuted: boolean;
+  isWritable: boolean;
+  storageBackend: 'localStorage' | 'memory';
 }
 
 interface DebugState {
@@ -55,6 +56,7 @@ interface DebugState {
   centerVisibility: string;
   centerZIndex: string;
   storage: StorageState;
+  initEvents: InitEvent[];
   isBlank: boolean;
   blankReason: string;
 }
@@ -71,8 +73,14 @@ const SCENE_SELECTORS = [
 function collectState(): DebugState {
   const vv = window.visualViewport;
   const vvScale = vv ? vv.scale : 1;
-  const zoomEst = `${Math.round((window.outerWidth / window.innerWidth) * 100)}%`;
-  const pRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const params = new URLSearchParams(window.location.search);
+  const overrideMotion = params.get('motion') ?? params.get('reduceMotion');
+  const storedMotion = localStorage.getItem('pride_reduced_motion');
+  const pRM = overrideMotion === 'full' || overrideMotion === '0' || storedMotion === 'false'
+    ? false
+    : overrideMotion === 'reduce' || overrideMotion === '1' || storedMotion === 'true'
+    ? true
+    : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const st = ScrollTrigger.getById('master-scroll-trigger');
   const lenis = getLenisInstance();
@@ -160,6 +168,7 @@ function collectState(): DebugState {
     centerVisibility: centerCs?.visibility ?? '?',
     centerZIndex: centerCs?.zIndex ?? '?',
     storage: safeStorage.getDiagnostics(),
+    initEvents: getInitEvents(),
     isBlank,
     blankReason,
   };
@@ -244,27 +253,37 @@ export function DebugOverlay() {
       )}
 
       <div style={S}>
-        <span style={SL}>Browser</span>
+        <span style={SL}>Browser & Viewport</span>
         <R k="viewport" v={`${state.innerWidth}×${state.innerHeight}`} />
         <R k="DPR" v={state.devicePixelRatio} />
         <R k="vp.scale" v={state.viewportScale} />
         <R k="zoom" v={state.zoomEstimate} />
-        <R k="reducedMotion" v={state.prefersReducedMotion} warn={state.prefersReducedMotion} />
+        <div
+          onClick={() => {
+            const next = !state.prefersReducedMotion;
+            localStorage.setItem('pride_reduced_motion', String(next));
+            window.dispatchEvent(new CustomEvent('pride:motion-change'));
+          }}
+          title="Click to toggle Full Motion / Reduced Motion"
+          style={{ cursor: 'pointer' }}
+        >
+          <R k="reducedMotion" v={`${state.prefersReducedMotion} ⇋`} warn={state.prefersReducedMotion} />
+        </div>
         <R k="hwConcurrency" v={state.hardwareConcurrency} />
       </div>
 
       <div style={S}>
-        <span style={SL}>Storage & Mute</span>
-        <R k="storage.status" v={state.storage.isAvailable ? 'available' : 'blocked (memory)'} warn={!state.storage.isAvailable} />
-        <R k="muted.raw" v={state.storage.mutedValue !== null ? `"${state.storage.mutedValue}"` : 'null (empty)'} />
-        <R k="muted.parsed" v={state.storage.parsedMuted ? 'true (muted)' : 'false (ready)'} />
+        <span style={SL}>Storage</span>
+        <R k="storage.avail" v={state.storage.isAvailable ? 'available' : 'blocked'} warn={!state.storage.isAvailable} />
+        <R k="storage.write" v={state.storage.isWritable ? 'writable' : 'read-only'} warn={!state.storage.isWritable} />
+        <R k="storage.backend" v={state.storage.storageBackend} />
       </div>
 
       <div style={S}>
-        <span style={SL}>Document</span>
-        <R k="scrollY" v={state.scrollY} />
-        <R k="doc.scrollH" v={state.docScrollHeight} />
-        <R k="body.scrollH" v={state.bodyScrollHeight} />
+        <span style={SL}>Document Geometry</span>
+        <R k="window.scrollY" v={state.scrollY} />
+        <R k="doc.height" v={state.docScrollHeight} />
+        <R k="vp.height" v={state.innerHeight} />
       </div>
 
       <div style={S}>
@@ -282,6 +301,17 @@ export function DebugOverlay() {
         <R k="opacity" v={state.stickyOpacity} warn={parseFloat(state.stickyOpacity) < 0.1} />
         <R k="visibility" v={state.stickyVisibility} warn={state.stickyVisibility === 'hidden'} />
         <R k="rect" v={state.stickyRect} />
+      </div>
+
+      <div style={S}>
+        <span style={SL}>Init Milestones</span>
+        {state.initEvents.length === 0 && <span style={{ color: '#888', fontSize: 9 }}>None yet</span>}
+        {state.initEvents.map((ev, i) => (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 6, fontSize: 9, marginBottom: 2 }}>
+            <span style={{ color: '#4CAF50' }}>✓ {ev.name}</span>
+            <span style={{ color: 'rgba(255,255,255,0.4)' }}>+{ev.elapsedMs}ms</span>
+          </div>
+        ))}
       </div>
 
       <div style={S}>

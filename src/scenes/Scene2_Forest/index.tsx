@@ -26,7 +26,7 @@ import { Assets } from '../../core/assets/AssetManifest';
  *   0.29 → Scene exits
  */
 export function Scene2_Forest() {
-  const { masterTimeline } = useMasterTimeline();
+  const { masterTimeline, registerScene, unregisterScene } = useMasterTimeline();
   const prefersReducedMotion = useReducedMotion();
 
   const sceneRef = useRef<HTMLElement>(null);
@@ -43,27 +43,57 @@ export function Scene2_Forest() {
   useLayoutEffect(() => {
     if (!masterTimeline || !sceneRef.current) return;
 
+    if (prefersReducedMotion) {
+      const ctx = gsap.context(() => {
+        gsap.set(bgScaleRef.current, { scale: 1, opacity: 1 });
+        gsap.set(vignetteRef.current, { opacity: 0.8 });
+        gsap.set(canopyRef.current, { opacity: 0.7, y: 0 });
+
+        masterTimeline.fromTo(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none' },
+          { opacity: 1, pointerEvents: 'auto', duration: 0.06, ease: 'none', immediateRender: false },
+          0.10
+        );
+        masterTimeline.to(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none', duration: 0.06, ease: 'none' },
+          0.26
+        );
+
+        masterTimeline.fromTo(
+          stanzaRef.current,
+          { opacity: 0, y: 0 },
+          { opacity: 1, y: 0, duration: 0.04, ease: 'none', immediateRender: false },
+          0.14
+        );
+        masterTimeline.to(
+          stanzaRef.current,
+          { opacity: 0, duration: 0.03, ease: 'none' },
+          0.24
+        );
+      }, sceneRef);
+
+      registerScene('forest');
+
+      return () => {
+        ctx.revert();
+        unregisterScene('forest');
+      };
+    }
+
     const ctx = gsap.context(() => {
-      // Initialize at opacity 0 — timeline controls reveal
-      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none' });
-
-      if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.04 }, 0.11);
-        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.03 }, 0.28);
-        return;
-      }
-
       // === ENTRY: Scene crossfades in at 10% scroll — full overlap with Scene1 ===
       masterTimeline.fromTo(sceneRef.current,
         { opacity: 0, pointerEvents: 'none' },
-        { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut' },
+        { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut', immediateRender: false },
         0.10
       );
 
       // === BACKGROUND: Cinematic dolly-push into forest (GPU transform only) ===
       masterTimeline.fromTo(bgScaleRef.current,
         { scale: 1.08, opacity: 0.7 },
-        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true },
+        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true, immediateRender: false },
         0.10
       );
       // Slow continuous push through the forest
@@ -74,47 +104,47 @@ export function Scene2_Forest() {
       // === CANOPY: Drops in from above ===
       masterTimeline.fromTo(canopyRef.current,
         { y: '-25%', opacity: 0 },
-        { y: '0%', opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true },
+        { y: '0%', opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true, immediateRender: false },
         0.11
       );
 
       // === MID VEGETATION: Frames left/right ===
       masterTimeline.fromTo(midVegRef.current,
         { scale: 1.15, opacity: 0 },
-        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true },
+        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out', force3D: true, immediateRender: false },
         0.11
       );
 
       // === VIGNETTE: Cinema depth ===
       masterTimeline.fromTo(vignetteRef.current,
         { opacity: 0 },
-        { opacity: 1, duration: 0.08, ease: 'power1.out' },
+        { opacity: 1, duration: 0.08, ease: 'power1.out', immediateRender: false },
         0.11
       );
 
       // === VOLUMETRIC LIGHT RAYS ===
       masterTimeline.fromTo(lightRay1Ref.current,
         { opacity: 0, x: '-8%' },
-        { opacity: 1, x: '0%', duration: 0.08, ease: 'power2.out' },
+        { opacity: 1, x: '0%', duration: 0.08, ease: 'power2.out', immediateRender: false },
         0.12
       );
       masterTimeline.fromTo(lightRay2Ref.current,
         { opacity: 0, x: '8%' },
-        { opacity: 1, x: '0%', duration: 0.08, ease: 'power2.out' },
+        { opacity: 1, x: '0%', duration: 0.08, ease: 'power2.out', immediateRender: false },
         0.13
       );
 
       // === ATMOSPHERIC MIST ===
       masterTimeline.fromTo(mistRef.current,
         { opacity: 0 },
-        { opacity: 1, duration: 0.08, ease: 'power1.out' },
+        { opacity: 1, duration: 0.08, ease: 'power1.out', immediateRender: false },
         0.12
       );
 
       // === NARRATIVE STANZA: Visible and readable from 0.14 to 0.24 ===
       masterTimeline.fromTo(stanzaRef.current,
         { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out', immediateRender: false },
         0.14
       );
       masterTimeline.to(stanzaRef.current, {
@@ -128,15 +158,22 @@ export function Scene2_Forest() {
 
     }, sceneRef);
 
-    return () => ctx.revert();
-  }, [masterTimeline, prefersReducedMotion]);
+    registerScene('forest');
+
+    return () => {
+      ctx.revert();
+      unregisterScene('forest');
+    };
+  }, [masterTimeline, prefersReducedMotion, registerScene, unregisterScene]);
 
   return (
     <section
       ref={sceneRef}
       id="scene-forest"
-      className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
+      className="absolute inset-0 w-full h-full pointer-events-none z-10"
       style={{
+        opacity: 0,
+        pointerEvents: 'none',
         /* Solid base prevents any transparent PNG showing as checkerboard */
         background: '#03100a',
         /* Isolate as stacking context to prevent bleed from parent */

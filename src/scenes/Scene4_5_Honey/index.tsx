@@ -20,7 +20,7 @@ import { Assets } from '../../core/assets/AssetManifest';
  * This eliminates the blank dark zone between Wild Honey and Collection.
  */
 export function Scene4_5_Honey() {
-  const { masterTimeline } = useMasterTimeline();
+  const { masterTimeline, registerScene, unregisterScene } = useMasterTimeline();
   const prefersReducedMotion = useReducedMotion();
 
   const sceneRef = useRef<HTMLElement>(null);
@@ -36,23 +36,66 @@ export function Scene4_5_Honey() {
     if (!masterTimeline || !sceneRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Initialize hidden — GSAP will reveal at the correct scroll position
-      // Initialize at opacity 0 — timeline controls reveal
-      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none' });
-
       if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.03 }, 0.68);
-        // No exit tween — sceneRef stays visible through TL=1.0 for natural unpin handoff
+        gsap.set(honeyBgRef.current, { scale: 1, opacity: 1, y: '0%' });
+        gsap.set(warmOverlayRef.current, { opacity: 0.4 });
+        gsap.set(glowRef.current, { opacity: 0.5 });
+
+        // Scene entry
+        masterTimeline.fromTo(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none' },
+          { opacity: 1, pointerEvents: 'auto', duration: 0.06, ease: 'none', immediateRender: false },
+          0.68
+        );
+
+        // Narrative 1: The Golden Wilds ("Sourced from the untamed cliffs.")
+        masterTimeline.fromTo(
+          textGroup1Ref.current,
+          { opacity: 0, y: 0 },
+          { opacity: 1, y: 0, duration: 0.04, ease: 'none', immediateRender: false },
+          0.70
+        );
+        masterTimeline.to(
+          textGroup1Ref.current,
+          { opacity: 0, duration: 0.03, ease: 'none' },
+          0.80
+        );
+
+        // Narrative 2: The Taste ("Raw & Unfiltered")
+        masterTimeline.fromTo(
+          textGroup2Ref.current,
+          { opacity: 0, y: 0 },
+          { opacity: 1, y: 0, duration: 0.04, ease: 'none', immediateRender: false },
+          0.82
+        );
+        masterTimeline.to(
+          textGroup2Ref.current,
+          { opacity: 0, duration: 0.03, ease: 'none' },
+          0.93
+        );
+
+        // Fade background before unpin handoff
+        masterTimeline.to(
+          [warmOverlayRef.current, glowRef.current, honeyBgRef.current],
+          { opacity: 0, duration: 0.06, stagger: 0.005 },
+          0.94
+        );
+        masterTimeline.to(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none', duration: 0.01, ease: 'none' },
+          1.00
+        );
         return;
       }
 
       // === ENTRY at 68% scroll (overlaps Scene4 exit 0.68–0.74) ===
-      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut' }, 0.68);
+      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut', immediateRender: false }, 0.68);
 
       // Honey background: parallax + saturation warm-up (GPU transform only)
       masterTimeline.fromTo(honeyBgRef.current,
         { scale: 1.08, opacity: 0.8, y: '5%' },
-        { scale: 1.0, opacity: 1, y: '0%', duration: 0.06, ease: 'power2.out' },
+        { scale: 1.0, opacity: 1, y: '0%', duration: 0.06, ease: 'power2.out', immediateRender: false },
         0.68
       );
       masterTimeline.to(honeyBgRef.current, { scale: 1.05, y: '-3%', duration: 0.26, ease: 'none' }, 0.72);
@@ -60,35 +103,35 @@ export function Scene4_5_Honey() {
       // Warm golden overlay blooms
       masterTimeline.fromTo(warmOverlayRef.current,
         { opacity: 0, scale: 0.8 },
-        { opacity: 0.5, scale: 1.1, duration: 0.08, ease: 'power2.out' },
+        { opacity: 0.5, scale: 1.1, duration: 0.08, ease: 'power2.out', immediateRender: false },
         0.70
       );
 
       // Honeycomb pattern drifts
       masterTimeline.fromTo(honeycombRef.current,
         { opacity: 0, y: '5%' },
-        { opacity: 0.25, y: '-4%', duration: 0.26, ease: 'none' },
+        { opacity: 0.25, y: '-4%', duration: 0.26, ease: 'none', immediateRender: false },
         0.70
       );
 
       // Honey drips
       masterTimeline.fromTo(honeyDripsRef.current,
         { opacity: 0 },
-        { opacity: 0.6, duration: 0.06, ease: 'power2.out' },
+        { opacity: 0.6, duration: 0.06, ease: 'power2.out', immediateRender: false },
         0.71
       );
 
       // Central glow
       masterTimeline.fromTo(glowRef.current,
         { opacity: 0, scale: 0.8 },
-        { opacity: 0.65, scale: 1.05, duration: 0.07, ease: 'power2.out' },
+        { opacity: 0.65, scale: 1.05, duration: 0.07, ease: 'power2.out', immediateRender: false },
         0.71
       );
 
       // === NARRATIVE TEXT 1: The Golden Wilds (active 0.70 to 0.81) ===
       masterTimeline.fromTo(textGroup1Ref.current,
         { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out', immediateRender: false },
         0.70
       );
 
@@ -98,30 +141,53 @@ export function Scene4_5_Honey() {
       // === NARRATIVE TEXT 2: The Taste (active 0.82 to 0.93) ===
       masterTimeline.fromTo(textGroup2Ref.current,
         { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out', immediateRender: false },
         0.82
       );
 
-      // === SCENE EXIT: Text and ambient overlays fade out at 0.93–0.97 ===
-      // The honey BACKGROUND (honeyBgRef) and scene CONTAINER (sceneRef) deliberately
-      // stay at opacity:1 through TL=1.0. This ensures Wild Honey is visible right up
-      // until the sticky container naturally unpins and Collection scrolls into view.
+      // === SCENE EXIT: All elements exit together at 0.93–1.0 ===
+      // ARCHITECTURE: Collection lives at document Y=800vh (outside the sticky container).
+      // It is below the fold until TL progress=1.0 exactly. There is nothing to "reveal
+      // beneath" by fading Honey early — the sticky viewport IS the only visible area
+      // from 0.0 → 1.0. Honey must fill the sticky viewport until the very end.
+      //
+      // FIX: Fade honeyBgRef WITH the overlays at 0.94, so the scene exits as a
+      // complete unit and transitions into EnvironmentController's matching dark bg.
+      // sceneRef fades at 1.00 (last frame) — simultaneous with the sticky unpin —
+      // so pointerEvents: none is set before Collection enters the viewport.
       masterTimeline.to(textGroup2Ref.current, { opacity: 0, duration: 0.03, ease: 'power2.in' }, 0.93);
-      masterTimeline.to([warmOverlayRef.current, honeycombRef.current, honeyDripsRef.current, glowRef.current], {
-        opacity: 0, duration: 0.06, stagger: 0.005
-      }, 0.94);
-      // honeyBgRef and sceneRef are NOT faded — they remain visible for the handoff.
+      masterTimeline.to(
+        [warmOverlayRef.current, honeycombRef.current, honeyDripsRef.current, glowRef.current, honeyBgRef.current],
+        { opacity: 0, duration: 0.06, stagger: 0.005 },
+        0.94
+      );
+      // sceneRef fades at the very last frame — after the background is already gone —
+      // so EnvironmentController's dark bg (#030703) colour-matches Collection's bg
+      // before Collection scrolls into view at unpin.
+      masterTimeline.to(sceneRef.current, {
+        opacity: 0, pointerEvents: 'none', duration: 0.01, ease: 'none'
+      }, 1.00);
 
     }, sceneRef);
 
-    return () => ctx.revert();
-  }, [masterTimeline, prefersReducedMotion]);
+    // Fix: registerScene AFTER tweens are added to the timeline.
+    // Previously this was called before gsap.context(), causing a premature sync
+    // that saw Honey's tweens as absent from the timeline.
+    registerScene('honey');
+
+    return () => {
+      ctx.revert();
+      unregisterScene('honey');
+    };
+  }, [masterTimeline, prefersReducedMotion, registerScene, unregisterScene]);
+
 
   return (
     <section
       ref={sceneRef}
       id="scene-honey"
-      className="absolute inset-0 w-full h-full pointer-events-none z-[7]"
+      className="absolute inset-0 w-full h-full pointer-events-none z-10"
+      style={{ opacity: 0, pointerEvents: 'none' }}
       aria-label="The Wild Forest Honey of the Nilgiri Biosphere"
     >
       {/* === BASE: Honey atmospheric background === */}
@@ -252,7 +318,7 @@ export function Scene4_5_Honey() {
           <p className="font-sans font-medium tracking-[0.34em] uppercase mb-4" style={{ color: '#E8B44D', fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)' }}>
             Raw &amp; Unfiltered
           </p>
-          <h2
+          <h3
             className="font-serif text-cream font-semibold"
             style={{
               fontSize: 'clamp(2rem, 5vw, 3.8rem)',
@@ -264,7 +330,7 @@ export function Scene4_5_Honey() {
           >
             Every drop tells<br />
             <span className="italic font-normal" style={{ color: '#E8B44D' }}>the forest's story.</span>
-          </h2>
+          </h3>
           <p className="font-sans text-cream/90 mt-5 leading-relaxed max-w-lg mx-auto font-normal" style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)', lineHeight: 1.65 }}>
             Each batch carries the unique floral signature of the seasonal bloom.
             Dark and resinous from the jackfruit season. Raw, alive, and utterly

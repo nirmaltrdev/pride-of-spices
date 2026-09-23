@@ -17,7 +17,7 @@ import { Assets } from '../../core/assets/AssetManifest';
  *   0.70 → Scene exit
  */
 export function Scene4_Harvest() {
-  const { masterTimeline } = useMasterTimeline();
+  const { masterTimeline, registerScene, unregisterScene } = useMasterTimeline();
   const prefersReducedMotion = useReducedMotion();
 
   const sceneRef = useRef<HTMLElement>(null);
@@ -32,23 +32,79 @@ export function Scene4_Harvest() {
   useLayoutEffect(() => {
     if (!masterTimeline || !sceneRef.current) return;
 
+    if (prefersReducedMotion) {
+      const ctx = gsap.context(() => {
+        gsap.set(harvestBgRef.current, { scale: 1, opacity: 1 });
+        gsap.set(warmOverlayRef.current, { opacity: 0.3 });
+
+        // Scene entry & exit crossfades
+        masterTimeline.fromTo(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none' },
+          { opacity: 1, pointerEvents: 'auto', duration: 0.06, ease: 'none', immediateRender: false },
+          0.50
+        );
+        masterTimeline.to(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none', duration: 0.06, ease: 'none' },
+          0.70
+        );
+
+        // Narrative 1: Harvest text ("Harvested by hand. Dried under the sun.")
+        masterTimeline.fromTo(
+          textGroupRef.current,
+          { opacity: 0, y: 0 },
+          { opacity: 1, y: 0, duration: 0.04, ease: 'none', immediateRender: false },
+          0.52
+        );
+        masterTimeline.to(
+          textGroupRef.current,
+          { opacity: 0, duration: 0.03, ease: 'none' },
+          0.62
+        );
+
+        // Processing layer
+        masterTimeline.fromTo(
+          processingRef.current,
+          { opacity: 0 },
+          { opacity: 0.85, duration: 0.04, ease: 'none', immediateRender: false },
+          0.58
+        );
+
+        // Narrative 2: Curing text ("7 days under the Kerala sun.")
+        masterTimeline.fromTo(
+          curingTextRef.current,
+          { opacity: 0, y: 0 },
+          { opacity: 1, y: 0, duration: 0.04, ease: 'none', immediateRender: false },
+          0.62
+        );
+        masterTimeline.to(
+          curingTextRef.current,
+          { opacity: 0, duration: 0.03, ease: 'none' },
+          0.72
+        );
+      }, sceneRef);
+
+      registerScene('harvest');
+
+      return () => {
+        ctx.revert();
+        unregisterScene('harvest');
+      };
+    }
+
     const ctx = gsap.context(() => {
-      // Initialize at opacity 0 — timeline controls reveal
-      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none' });
-
-      if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.03 }, 0.52);
-        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.03 }, 0.69);
-        return;
-      }
-
       // === ENTRY at 50% scroll (overlaps Scene3 exit 0.50–0.56) ===
-      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut' }, 0.50);
+      masterTimeline.fromTo(sceneRef.current,
+        { opacity: 0, pointerEvents: 'none' },
+        { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut', immediateRender: false },
+        0.50
+      );
 
       // Harvest background — black pepper spread (GPU transform only)
       masterTimeline.fromTo(harvestBgRef.current,
         { scale: 1.08, opacity: 0.8 },
-        { scale: 1.0, opacity: 1, duration: 0.06, ease: 'power2.out' },
+        { scale: 1.0, opacity: 1, duration: 0.06, ease: 'power2.out', immediateRender: false },
         0.50
       );
       masterTimeline.to(harvestBgRef.current, { scale: 1.05, duration: 0.22, ease: 'none' }, 0.54);
@@ -56,21 +112,21 @@ export function Scene4_Harvest() {
       // Warm tonal overlay
       masterTimeline.fromTo(warmOverlayRef.current,
         { opacity: 0 },
-        { opacity: 0.35, duration: 0.06, ease: 'power1.in' },
+        { opacity: 0.35, duration: 0.06, ease: 'power1.in', immediateRender: false },
         0.52
       );
 
       // Hand shadow — artisan enters from top right
       masterTimeline.fromTo(handShadowRef.current,
         { x: '110%', y: '-50%', opacity: 0 },
-        { x: '20%', y: '-20%', opacity: 0.65, duration: 0.06, ease: 'power2.out' },
+        { x: '20%', y: '-20%', opacity: 0.65, duration: 0.06, ease: 'power2.out', immediateRender: false },
         0.52
       );
 
       // Processing layer crossfades smoothly
       masterTimeline.fromTo(processingRef.current,
         { opacity: 0, scale: 1.04 },
-        { opacity: 0.85, scale: 1.0, duration: 0.05, ease: 'power2.out' },
+        { opacity: 0.85, scale: 1.0, duration: 0.05, ease: 'power2.out', immediateRender: false },
         0.58
       );
       masterTimeline.to(handShadowRef.current, { opacity: 0, x: '-15%', duration: 0.03, ease: 'power2.in' }, 0.58);
@@ -80,7 +136,7 @@ export function Scene4_Harvest() {
       sweepPositions.forEach((pos, i) => {
         masterTimeline.fromTo(sunRayRef.current,
           { x: '-140%', opacity: 0 },
-          { x: '140%', opacity: 0.4 + i * 0.03, duration: 0.025, ease: 'power1.inOut' },
+          { x: '140%', opacity: 0.4 + i * 0.03, duration: 0.025, ease: 'power1.inOut', immediateRender: false },
           pos
         );
       });
@@ -88,7 +144,7 @@ export function Scene4_Harvest() {
       // === NARRATIVE TEXT 1: Harvest (active 0.52 to 0.63) ===
       masterTimeline.fromTo(textGroupRef.current,
         { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out', immediateRender: false },
         0.52
       );
 
@@ -98,7 +154,7 @@ export function Scene4_Harvest() {
       // === NARRATIVE TEXT 2: Curing (active 0.62 to 0.72) ===
       masterTimeline.fromTo(curingTextRef.current,
         { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out', immediateRender: false },
         0.62
       );
 
@@ -108,14 +164,20 @@ export function Scene4_Harvest() {
       masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.06, ease: 'power1.inOut' }, 0.70);
     }, sceneRef);
 
-    return () => ctx.revert();
-  }, [masterTimeline, prefersReducedMotion]);
+    registerScene('harvest');
+
+    return () => {
+      ctx.revert();
+      unregisterScene('harvest');
+    };
+  }, [masterTimeline, prefersReducedMotion, registerScene, unregisterScene]);
 
   return (
     <section
       ref={sceneRef}
       id="scene-harvest"
-      className="absolute inset-0 w-full h-full pointer-events-none z-[6]"
+      className="absolute inset-0 w-full h-full pointer-events-none z-10"
+      style={{ opacity: 0, pointerEvents: 'none', background: '#021008' }}
       aria-label="The Traditional Harvest Process"
     >
       {/* === BASE: Black pepper harvest spread === */}
@@ -235,7 +297,7 @@ export function Scene4_Harvest() {
           <p className="font-sans font-medium tracking-[0.34em] uppercase mb-4" style={{ color: '#E8B44D', fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)' }}>
             The Curing Process
           </p>
-          <h2
+          <h3
             className="font-serif text-cream font-semibold"
             style={{
               fontSize: 'clamp(2rem, 5vw, 3.6rem)',
@@ -247,7 +309,7 @@ export function Scene4_Harvest() {
           >
             7 days under<br />
             <span className="italic font-normal" style={{ color: '#E8B44D' }}>the Kerala sun.</span>
-          </h2>
+          </h3>
           <p className="font-sans text-cream/90 mt-5 leading-relaxed max-w-lg mx-auto font-normal" style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)', lineHeight: 1.65 }}>
             Spread across natural woven bamboo mats, solar warmth slowly cures the berries
             into rich wrinkled peppercorns — sealing in high-potency piperine oils.

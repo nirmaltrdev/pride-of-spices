@@ -18,7 +18,7 @@ import { Assets } from '../../core/assets/AssetManifest';
  *   0.54 → Scene exits
  */
 export function Scene3_Discovery() {
-  const { masterTimeline } = useMasterTimeline();
+  const { masterTimeline, registerScene, unregisterScene } = useMasterTimeline();
   const prefersReducedMotion = useReducedMotion();
 
   const sceneRef = useRef<HTMLElement>(null);
@@ -36,23 +36,87 @@ export function Scene3_Discovery() {
   useLayoutEffect(() => {
     if (!masterTimeline || !sceneRef.current) return;
 
+    if (prefersReducedMotion) {
+      const ctx = gsap.context(() => {
+        gsap.set(bgBaseRef.current, { scale: 1, opacity: 1 });
+        gsap.set(darkOverlayRef.current, { opacity: 0.3 });
+
+        // Scene entry & exit crossfades
+        masterTimeline.fromTo(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none' },
+          { opacity: 1, pointerEvents: 'auto', duration: 0.06, ease: 'none', immediateRender: false },
+          0.24
+        );
+        masterTimeline.to(
+          sceneRef.current,
+          { opacity: 0, pointerEvents: 'none', duration: 0.06, ease: 'none' },
+          0.50
+        );
+
+        // Pepper close-up macro reveal
+        masterTimeline.fromTo(
+          pepperCloseRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.04, ease: 'none', immediateRender: false },
+          0.26
+        );
+
+        // Narrative 1: Discovery text ("The pure essence of Wayanad")
+        masterTimeline.fromTo(
+          textGroupRef.current,
+          { opacity: 0, y: 0 },
+          { opacity: 1, y: 0, duration: 0.04, ease: 'none', immediateRender: false },
+          0.28
+        );
+        masterTimeline.to(
+          textGroupRef.current,
+          { opacity: 0, duration: 0.03, ease: 'none' },
+          0.39
+        );
+
+        // Pepper turns ripe
+        masterTimeline.fromTo(
+          ripePepperRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.04, ease: 'none', immediateRender: false },
+          0.42
+        );
+
+        // Narrative 2: Post-Monsoon lifecycle text ("Nourished by rain. Perfected by time.")
+        masterTimeline.fromTo(
+          lifecycleTextRef.current,
+          { opacity: 0, y: 0 },
+          { opacity: 1, y: 0, duration: 0.04, ease: 'none', immediateRender: false },
+          0.42
+        );
+        masterTimeline.to(
+          lifecycleTextRef.current,
+          { opacity: 0, duration: 0.03, ease: 'none' },
+          0.52
+        );
+      }, sceneRef);
+
+      registerScene('discovery');
+
+      return () => {
+        ctx.revert();
+        unregisterScene('discovery');
+      };
+    }
+
     const ctx = gsap.context(() => {
-      // Initialize at opacity 0 — timeline controls reveal
-      gsap.set(sceneRef.current, { opacity: 0, pointerEvents: 'none' });
-
-      if (prefersReducedMotion) {
-        masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.03 }, 0.26);
-        masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.03 }, 0.54);
-        return;
-      }
-
       // === ENTRY at 24% scroll — full overlap with Scene2 exit ===
-      masterTimeline.fromTo(sceneRef.current, { opacity: 0, pointerEvents: 'none' }, { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut' }, 0.24);
+      masterTimeline.fromTo(sceneRef.current,
+        { opacity: 0, pointerEvents: 'none' },
+        { opacity: 1, pointerEvents: 'auto', duration: 0.08, ease: 'power2.inOut', immediateRender: false },
+        0.24
+      );
 
       // Wide plantation background (GPU transform only)
       masterTimeline.fromTo(bgBaseRef.current,
         { scale: 1.08, opacity: 0.6 },
-        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out' },
+        { scale: 1.0, opacity: 1, duration: 0.08, ease: 'power2.out', immediateRender: false },
         0.24
       );
       // Slow push continues
@@ -61,28 +125,28 @@ export function Scene3_Discovery() {
       // Balanced overlay (never near black)
       masterTimeline.fromTo(darkOverlayRef.current,
         { opacity: 0.4 },
-        { opacity: 0.2, duration: 0.06, ease: 'power1.out' },
+        { opacity: 0.2, duration: 0.06, ease: 'power1.out', immediateRender: false },
         0.25
       );
 
       // === PEPPER CLOSE-UP: Macro focus reveal ===
       masterTimeline.fromTo(pepperCloseRef.current,
         { opacity: 0, scale: 1.05 },
-        { opacity: 1, scale: 1.0, duration: 0.06, ease: 'power2.out' },
+        { opacity: 1, scale: 1.0, duration: 0.06, ease: 'power2.out', immediateRender: false },
         0.27
       );
 
       // Light caustic sweeps
       masterTimeline.fromTo(lightRayRef.current,
         { x: '-120%', opacity: 0 },
-        { x: '120%', opacity: 0.45, duration: 0.06, ease: 'power1.inOut' },
+        { x: '120%', opacity: 0.45, duration: 0.06, ease: 'power1.inOut', immediateRender: false },
         0.29
       );
 
       // Dewdrop flare
       masterTimeline.fromTo(dewdropRef.current,
         { opacity: 0, scale: 0.2 },
-        { opacity: 1, scale: 1.6, duration: 0.015, ease: 'power3.out' },
+        { opacity: 1, scale: 1.6, duration: 0.015, ease: 'power3.out', immediateRender: false },
         0.32
       );
       masterTimeline.to(dewdropRef.current, { opacity: 0, scale: 2.4, duration: 0.015, ease: 'power2.in' }, 0.335);
@@ -90,14 +154,14 @@ export function Scene3_Discovery() {
       // === NARRATIVE 1: Discovery text (active 0.28 to 0.40) ===
       masterTimeline.fromTo(textGroupRef.current,
         { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out', immediateRender: false },
         0.28
       );
 
       // Farmer hands appear gently
       masterTimeline.fromTo(farmerRef.current,
         { opacity: 0 },
-        { opacity: 0.45, duration: 0.05, ease: 'power2.out' },
+        { opacity: 0.45, duration: 0.05, ease: 'power2.out', immediateRender: false },
         0.32
       );
 
@@ -112,7 +176,7 @@ export function Scene3_Discovery() {
       // Pepper turns red
       masterTimeline.fromTo(ripePepperRef.current,
         { opacity: 0 },
-        { opacity: 1, duration: 0.06, ease: 'power2.inOut' },
+        { opacity: 1, duration: 0.06, ease: 'power2.inOut', immediateRender: false },
         0.42
       );
 
@@ -123,7 +187,7 @@ export function Scene3_Discovery() {
       // === NARRATIVE 2: Post-monsoon (active 0.42 to 0.52) ===
       masterTimeline.fromTo(lifecycleTextRef.current,
         { opacity: 0, y: 25 },
-        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.04, ease: 'power2.out', immediateRender: false },
         0.42
       );
 
@@ -132,14 +196,20 @@ export function Scene3_Discovery() {
       masterTimeline.to(sceneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.06, ease: 'power1.inOut' }, 0.50);
     }, sceneRef);
 
-    return () => ctx.revert();
-  }, [masterTimeline, prefersReducedMotion]);
+    registerScene('discovery');
+
+    return () => {
+      ctx.revert();
+      unregisterScene('discovery');
+    };
+  }, [masterTimeline, prefersReducedMotion, registerScene, unregisterScene]);
 
   return (
     <section
       ref={sceneRef}
       id="scene-discovery"
-      className="absolute inset-0 w-full h-full pointer-events-none z-[4]"
+      className="absolute inset-0 w-full h-full pointer-events-none z-10"
+      style={{ opacity: 0, pointerEvents: 'none' }}
       aria-label="Discovering the Pepper Vines of Wayanad"
     >
       {/* === BASE: Wide plantation background === */}
@@ -299,7 +369,7 @@ export function Scene3_Discovery() {
           <p className="font-sans font-medium tracking-[0.34em] uppercase mb-4" style={{ color: 'rgba(160,200,240,0.9)', fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)' }}>
             The Monsoon &amp; Ripening
           </p>
-          <h2
+          <h3
             className="font-serif text-cream font-semibold"
             style={{
               fontSize: 'clamp(2rem, 5vw, 3.6rem)',
@@ -311,7 +381,7 @@ export function Scene3_Discovery() {
           >
             Nourished by rain.<br />
             <span className="italic font-normal" style={{ color: '#E8B44D' }}>Perfected by time.</span>
-          </h2>
+          </h3>
           <p className="font-sans text-cream/90 mt-5 leading-relaxed max-w-lg mx-auto font-normal" style={{ fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)', lineHeight: 1.65 }}>
             Torrential Kerala monsoons drench the vines with vital minerals. Slowly the pepper berries ripen
             from vibrant green to a rich sunset crimson — signaling the sacred harvest.

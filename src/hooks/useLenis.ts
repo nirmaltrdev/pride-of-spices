@@ -2,17 +2,14 @@ import { useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useReducedMotion } from './useReducedMotion';
 import { setLenisInstance } from '../core/lenisInstance';
+import { recordInitEvent } from '../core/telemetry/initEvents';
 
 gsap.registerPlugin(ScrollTrigger);
 
 // Prevent mobile dynamic toolbar / address bar resize from jittering ScrollTrigger
 if (typeof window !== 'undefined') {
   ScrollTrigger.config({ ignoreMobileResize: true });
-  if ('scrollRestoration' in window.history) {
-    window.history.scrollRestoration = 'manual';
-  }
 }
 
 /**
@@ -40,10 +37,8 @@ if (typeof window !== 'undefined') {
  */
 export function useLenis() {
   const lenisRef = useRef<Lenis | null>(null);
-  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (prefersReducedMotion) return;
 
     // Guard against double-mount in React StrictMode.
     // If a Lenis instance was already created by a previous mount of this
@@ -77,6 +72,7 @@ export function useLenis() {
 
     lenisRef.current = lenis;
     setLenisInstance(lenis);
+    recordInitEvent('Lenis ready');
 
     // ── ScrollTrigger sync ──
     // Lenis emits 'scroll' events that ScrollTrigger needs to respond to.
@@ -106,7 +102,7 @@ export function useLenis() {
       lenisRef.current = null;
       setLenisInstance(null);
     };
-  }, [prefersReducedMotion]);
+  }, []);
 
   return lenisRef;
 }

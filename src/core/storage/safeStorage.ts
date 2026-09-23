@@ -15,9 +15,7 @@
  * Maintains a seamless in-memory fallback cache whenever window.localStorage fails.
  */
 
-export const STORAGE_KEYS = {
-  MUTED: 'pride_of_spices_muted',
-} as const;
+export const STORAGE_KEYS = {} as const;
 
 // In-memory fallback map if window.localStorage is unreachable or throws
 const memoryStorage = new Map<string, string>();
@@ -32,6 +30,22 @@ export function isLocalStorageAvailable(): boolean {
     window.localStorage.setItem(probe, '1');
     window.localStorage.removeItem(probe);
     return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Safely tests whether localStorage is writable in current context.
+ */
+export function isLocalStorageWritable(): boolean {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return false;
+    const probe = '__storage_probe_write__';
+    window.localStorage.setItem(probe, '1');
+    const read = window.localStorage.getItem(probe);
+    window.localStorage.removeItem(probe);
+    return read === '1';
   } catch {
     return false;
   }
@@ -113,51 +127,30 @@ export const safeStorage = {
   },
 
   /**
-   * Gets the 'pride_of_spices_muted' preference.
-   * Default is false (unmuted / active audio context).
-   */
-  getMutedPreference(defaultValue: boolean = false): boolean {
-    return this.getBoolean(STORAGE_KEYS.MUTED, defaultValue);
-  },
-
-  /**
-   * Sets the 'pride_of_spices_muted' preference.
-   */
-  setMutedPreference(muted: boolean): boolean {
-    return this.setBoolean(STORAGE_KEYS.MUTED, muted);
-  },
-
-  /**
-   * Initializes default storage keys on first visit without throwing.
-   * If 'pride_of_spices_muted' is missing or has invalid value, sets it to 'false'.
-   * If already set to 'true' or 'false', preserves existing user preference.
+   * Verifies safe storage access without throwing.
    */
   initStorage(): void {
     try {
-      const existing = this.getItem(STORAGE_KEYS.MUTED);
-      if (existing === null || (existing !== 'true' && existing !== 'false')) {
-        this.setItem(STORAGE_KEYS.MUTED, 'false');
-      }
+      this.getItem('__init_probe__');
     } catch (err) {
-      console.warn('[SafeStorage] Storage initialization error handled safely:', err);
+      console.warn('[SafeStorage] Storage check handled safely:', err);
     }
   },
 
   /**
-   * Diagnostic snapshot of storage state for DebugOverlay.
+   * Diagnostic snapshot of storage state for DebugOverlay and telemetry.
    */
   getDiagnostics(): {
     isAvailable: boolean;
-    mutedValue: string | null;
-    parsedMuted: boolean;
+    isWritable: boolean;
+    storageBackend: 'localStorage' | 'memory';
   } {
     const isAvail = isLocalStorageAvailable();
-    const rawVal = this.getItem(STORAGE_KEYS.MUTED);
-    const parsed = this.getMutedPreference(false);
+    const isWrit = isLocalStorageWritable();
     return {
       isAvailable: isAvail,
-      mutedValue: rawVal,
-      parsedMuted: parsed,
+      isWritable: isWrit,
+      storageBackend: isAvail && isWrit ? 'localStorage' : 'memory',
     };
   }
 };

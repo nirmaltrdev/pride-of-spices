@@ -12,24 +12,40 @@ import { useEffect, useState } from 'react';
  * page is open the hook re-fires and all consumers re-render immediately.
  */
 export function useReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() => {
-    // SSR-safe: initialise from the media query on first render
+  const getMotionPreference = (): boolean => {
     if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('motion') === 'full' || params.get('reduceMotion') === '0') return false;
+    if (params.get('motion') === 'reduce' || params.get('reduceMotion') === '1') return true;
+    const stored = localStorage.getItem('pride_reduced_motion');
+    if (stored === 'false') return false;
+    if (stored === 'true') return true;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  });
+  };
+
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(getMotionPreference);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    // Sync in case the value changed between first render and effect mount
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handler = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches);
+    const update = () => {
+      setPrefersReducedMotion(getMotionPreference());
     };
 
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    update();
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const storageHandler = (e: StorageEvent) => {
+      if (e.key === 'pride_reduced_motion') update();
+    };
+
+    mediaQuery.addEventListener('change', update);
+    window.addEventListener('storage', storageHandler);
+    window.addEventListener('pride:motion-change', update);
+
+    return () => {
+      mediaQuery.removeEventListener('change', update);
+      window.removeEventListener('storage', storageHandler);
+      window.removeEventListener('pride:motion-change', update);
+    };
   }, []);
 
   return prefersReducedMotion;

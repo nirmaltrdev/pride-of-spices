@@ -4,6 +4,7 @@ import {
   scrollToPixels,
   pauseLenis,
   resumeLenis,
+  getLenisInstance,
 } from '../core/lenisInstance';
 import { getActiveSceneFromProgress } from '../core/sceneRegistry';
 import gsap from 'gsap';
@@ -33,19 +34,18 @@ const NAV_LINKS = [
 
 export function CinematicNav() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [enquireOpen, setEnquireOpen] = useState(false);
   const [activeSceneIdx, setActiveSceneIdx] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   const navRef = useRef<HTMLElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const enquireMenuRef = useRef<HTMLDivElement>(null);
   const autoTourAbortRef = useRef<(() => void) | null>(null);
 
-  // ── 1. High-Performance Progress Bar & Active Scene Detection ───
+  // ── 1. Scroll & Progress Tracking via GSAP quickSetter ───
   useEffect(() => {
-    // QuickSetter directly mutates scaleX on the progress bar (GPU accelerated, 0 React re-renders)
     const setProgressScale = progressBarRef.current
       ? gsap.quickSetter(progressBarRef.current, 'scaleX')
       : null;
@@ -103,6 +103,11 @@ export function CinematicNav() {
       if (isAborted) return;
       isAborted = true;
       if (tourTimeout) clearTimeout(tourTimeout);
+      const _lenis = getLenisInstance();
+      if (_lenis) {
+        _lenis.scrollTo(_lenis.scroll, { immediate: true });
+      }
+      resumeLenis();
       setIsAutoPlaying(false);
     };
 
@@ -138,13 +143,15 @@ export function CinematicNav() {
     // Start first step after a gentle pause
     tourTimeout = setTimeout(runStep, 600);
 
-    // Abort tour on any human interaction (wheel, touch, keydown)
+    // Abort tour on any human interaction (wheel, touch, pointer, keydown)
     const onUserInteract = () => {
       abortTour();
     };
 
     window.addEventListener('wheel', onUserInteract, { passive: true, once: true });
     window.addEventListener('touchstart', onUserInteract, { passive: true, once: true });
+    window.addEventListener('touchmove', onUserInteract, { passive: true, once: true });
+    window.addEventListener('pointerdown', onUserInteract, { passive: true, once: true });
     window.addEventListener('keydown', onUserInteract, { once: true });
 
     return () => {
@@ -152,6 +159,8 @@ export function CinematicNav() {
       if (tourTimeout) clearTimeout(tourTimeout);
       window.removeEventListener('wheel', onUserInteract);
       window.removeEventListener('touchstart', onUserInteract);
+      window.removeEventListener('touchmove', onUserInteract);
+      window.removeEventListener('pointerdown', onUserInteract);
       window.removeEventListener('keydown', onUserInteract);
     };
   }, [isAutoPlaying]);
@@ -319,44 +328,47 @@ export function CinematicNav() {
               })}
             </div>
 
-            {NAV_LINKS.map((link, i) => {
-              const isCurrent = activeSceneIdx === i + 1;
-              return (
-                <button
-                  key={link.sceneId}
-                  onClick={() => handleNavClick(link.sceneId)}
-                  className="font-sans relative group"
-                  style={{
-                    fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)',
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    color: isCurrent ? '#018039' : 'rgba(242,249,245,0.72)',
-                    transition: 'color 0.3s ease',
-                    padding: '8px 0',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    minHeight: '44px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    fontWeight: isCurrent ? 600 : 500,
-                  }}
-                  aria-current={isCurrent ? 'page' : undefined}
-                >
-                  {link.label}
-                  <span
-                    className="absolute -bottom-0.5 left-0 h-[1.5px] w-full"
-                    style={{
-                      background: '#018039',
-                      transformOrigin: 'left',
-                      transform: isCurrent ? 'scaleX(1)' : 'scaleX(0)',
-                      transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                    }}
-                    aria-hidden="true"
-                  />
-                </button>
-              );
-            })}
+            <ul role="list" className="flex items-center m-0 p-0 list-none" style={{ gap: 'clamp(1rem, 2vw, 1.75rem)' }}>
+              {NAV_LINKS.map((link) => {
+                const isCurrent = activeSceneIdx === NAV_LINKS.findIndex(l => l.sceneId === link.sceneId) + 1;
+                return (
+                  <li key={link.sceneId}>
+                    <button
+                      onClick={() => handleNavClick(link.sceneId)}
+                      className="font-sans relative group"
+                      style={{
+                        fontSize: 'clamp(0.68rem, 1.2vw, 0.78rem)',
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        color: isCurrent ? '#018039' : 'rgba(242,249,245,0.72)',
+                        transition: 'color 0.3s ease',
+                        padding: '8px 0',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        minHeight: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontWeight: isCurrent ? 600 : 500,
+                      }}
+                      aria-current={isCurrent ? 'page' : undefined}
+                    >
+                      {link.label}
+                      <span
+                        className="absolute -bottom-0.5 left-0 h-[1.5px] w-full"
+                        style={{
+                          background: '#018039',
+                          transformOrigin: 'left',
+                          transform: isCurrent ? 'scaleX(1)' : 'scaleX(0)',
+                          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+                        }}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
           {/* Auto Tour & Enquire Concierge */}
@@ -646,25 +658,28 @@ export function CinematicNav() {
             Close
           </button>
 
-          {NAV_LINKS.map(link => (
-            <button
-              key={link.sceneId}
-              onClick={() => handleNavClick(link.sceneId)}
-              className="font-serif text-cream hover:text-gold transition-colors duration-200"
-              style={{
-                fontSize: 'clamp(1.65rem, 7vw, 2.5rem)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                minHeight: '48px',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0.25rem 1.5rem',
-              }}
-            >
-              {link.label}
-            </button>
-          ))}
+          <ul role="list" className="flex flex-col items-center m-0 p-0 list-none" style={{ gap: 'clamp(0.5rem, 1.5vh, 1rem)' }}>
+            {NAV_LINKS.map(link => (
+              <li key={link.sceneId}>
+                <button
+                  onClick={() => handleNavClick(link.sceneId)}
+                  className="font-serif text-cream hover:text-gold transition-colors duration-200"
+                  style={{
+                    fontSize: 'clamp(1.65rem, 7vw, 2.5rem)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    minHeight: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0.25rem 1.5rem',
+                  }}
+                >
+                  {link.label}
+                </button>
+              </li>
+            ))}
+          </ul>
 
           <div
             style={{
@@ -732,6 +747,27 @@ export function CinematicNav() {
               style={{
                 fontSize: '0.72rem',
                 letterSpacing: '0.22em',
+                color: '#25D366',
+                border: '1px solid rgba(37,211,102,0.65)',
+                background: 'rgba(37,211,102,0.12)',
+                borderRadius: '3px',
+                padding: '0.85rem 1.25rem',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+              }}
+              onClick={() => setMobileOpen(false)}
+            >
+              WhatsApp Concierge
+            </a>
+            <a
+              href="tel:+919645401284"
+              className="font-sans uppercase text-center"
+              style={{
+                fontSize: '0.72rem',
+                letterSpacing: '0.22em',
                 color: '#D4932A',
                 border: '1px solid rgba(212,147,42,0.65)',
                 background: 'rgba(212,147,42,0.12)',
@@ -745,7 +781,7 @@ export function CinematicNav() {
               }}
               onClick={() => setMobileOpen(false)}
             >
-              WhatsApp Concierge
+              Phone: +91 96454 01284
             </a>
           </div>
         </div>

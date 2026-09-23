@@ -1,7 +1,6 @@
 import React from 'react';
 import { SceneManager } from '../controllers/SceneManager';
 import { EnvironmentController } from '../controllers/EnvironmentController';
-import { AudioController } from '../controllers/AudioController';
 import { CinematicNav } from '../../components/CinematicNav';
 import { ForestParticles } from '../../components/ForestParticles';
 
@@ -12,7 +11,6 @@ import { ForestParticles } from '../../components/ForestParticles';
  * - 1200vh scroll height gives generous, unhurried cinematic pacing
  * - CinematicNav hovers above all scenes, appears after first act
  * - EnvironmentController manages the persistent atmospheric canvas
- * - AudioController: non-blocking sound toggle (appears after first scroll)
  * - ForestParticles: canvas-based atmospheric particle system
  * - Skip-to-content link for keyboard accessibility
  */
@@ -35,9 +33,6 @@ export function ExperienceShell({ children }: { children: React.ReactNode }) {
 
       {/* Atmospheric Particle System */}
       <ForestParticles />
-
-      {/* Ambient Sound Toggle */}
-      <AudioController />
 
       {/* Master Scroll Container */}
       <SceneManager scrollHeight="800vh">
