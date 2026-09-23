@@ -73,6 +73,7 @@ const SCENE_SELECTORS = [
 function collectState(): DebugState {
   const vv = window.visualViewport;
   const vvScale = vv ? vv.scale : 1;
+  const zoomEst = `${Math.round((window.outerWidth / window.innerWidth) * 100)}%`;
   const params = new URLSearchParams(window.location.search);
   const overrideMotion = params.get('motion') ?? params.get('reduceMotion');
   const storedMotion = localStorage.getItem('pride_reduced_motion');
