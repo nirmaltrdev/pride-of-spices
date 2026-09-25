@@ -554,7 +554,7 @@ export function CinematicNav() {
               cursor: 'pointer',
             }}
             onClick={() => setMobileOpen(o => !o)}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-label={mobileOpen ? 'Toggle navigation menu' : 'Open menu'}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
           >
@@ -589,7 +589,7 @@ export function CinematicNav() {
       {/* Mobile Drawer */}
       <div
         id="mobile-menu"
-        className="fixed inset-0 z-[99] md:hidden"
+        className="fixed inset-0 z-[101] md:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
@@ -653,7 +653,7 @@ export function CinematicNav() {
               cursor: 'pointer',
               padding: '0.5rem',
             }}
-            aria-label="Close menu"
+            aria-label="Close navigation drawer"
           >
             Close
           </button>

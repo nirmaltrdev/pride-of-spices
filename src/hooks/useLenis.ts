@@ -55,7 +55,11 @@ export function useLenis() {
       window.innerWidth < 768 &&
       'ontouchstart' in window;
 
-    if (isMobilePhone) return;
+    if (isMobilePhone) {
+      // BUG-003: Any prior Lenis instance is already destroyed by the guard
+      // above (lines 46-49), so scroll momentum is neutralized before we return.
+      return;
+    }
 
     const lenis = new Lenis({
       // 0.75 duration: fast enough to feel responsive on quick scrolls,
@@ -73,6 +77,13 @@ export function useLenis() {
     lenisRef.current = lenis;
     setLenisInstance(lenis);
     recordInitEvent('Lenis ready');
+
+    // BUG-003: On first mount, stop any inherited scroll velocity so the
+    // initial scene arrival position is clean with no easing "hold" artifact.
+    lenis.stop();
+    requestAnimationFrame(() => {
+      lenis.start();
+    });
 
     // ── ScrollTrigger sync ──
     // Lenis emits 'scroll' events that ScrollTrigger needs to respond to.

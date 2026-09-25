@@ -19,6 +19,8 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     overscroll-behavior: none;
+    /* BUG-001: Contain horizontal overflow at the root — propagates through resize */
+    overflow-x: clip;
   }
 
   body {
@@ -368,6 +370,14 @@ html.lenis body {
   .glass-panel {
     backdrop-filter: blur(12px) saturate(1.2);
     -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  }
+
+  /* BUG-001: Re-enforce horizontal overflow containment on narrow viewports.
+     Covers the resize-from-desktop-to-mobile case where layout-induced overflow
+     can momentarily break the clip applied on html/body. */
+  html, body {
+    max-width: 100vw;
+    overflow-x: clip;
   }
 
   /* Reduce particle opacity hint (JS handles actual reduction) */
