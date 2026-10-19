@@ -35,10 +35,10 @@ export function Preloader({ onComplete }: PreloaderProps) {
     });
 
     // Minimum display time for a premium loading experience
-    const minTime = new Promise<void>(resolve => setTimeout(resolve, 1400));
+    const minTime = new Promise<void>((resolve) => setTimeout(resolve, 1400));
 
     // Hard fallback timeout: guarantees preloader dismisses even if network or fonts hang
-    const maxTimeout = new Promise<void>(resolve => setTimeout(resolve, 3500));
+    const maxTimeout = new Promise<void>((resolve) => setTimeout(resolve, 3500));
 
     // Poll image loading progress every 80ms
     const progressInterval = setInterval(() => {
@@ -86,10 +86,7 @@ export function Preloader({ onComplete }: PreloaderProps) {
             recordInitEvent('[POPS INIT] refresh source=Preloader');
             ScrollTrigger.refresh();
             if (import.meta.env.DEV) {
-              console.log(
-                '%c[POPS INIT] refresh complete',
-                'color: #10B981; font-weight: bold;'
-              );
+              console.log('%c[POPS INIT] refresh complete', 'color: #10B981; font-weight: bold;');
             }
             // Signal SceneManager to perform the authoritative timeline sync.
             window.dispatchEvent(new CustomEvent('pride:refresh-complete'));
@@ -98,7 +95,6 @@ export function Preloader({ onComplete }: PreloaderProps) {
             setTimeout(() => AssetLoader.preloadStage(5), 1000);
           }, 200);
         }, 750);
-
       }, 450);
     });
 
@@ -156,14 +152,13 @@ export function Preloader({ onComplete }: PreloaderProps) {
         {/* Official SVG Logo Mark */}
         <div style={{ marginBottom: 'clamp(1.25rem, 3vh, 2rem)' }}>
           <img
-            src="/images/logo.svg"
-            alt="The Pride of Spices logo"
+            src="/images/logo-mark.svg"
+            alt="The Pride of Spices logo mark"
             style={{
               width: 'clamp(52px, 10vmin, 72px)',
               height: 'auto',
-              color: '#018039',
-              filter: 'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
-              opacity: 0.85,
+              display: 'block',
+              opacity: 0.95,
             }}
             aria-hidden="true"
           />
@@ -192,10 +187,7 @@ export function Preloader({ onComplete }: PreloaderProps) {
           >
             The Pride
             <br />
-            <span
-              className="italic"
-              style={{ color: '#018039', fontSize: '0.78em' }}
-            >
+            <span className="italic" style={{ color: '#018039', fontSize: '0.78em' }}>
               of Spices
             </span>
           </p>

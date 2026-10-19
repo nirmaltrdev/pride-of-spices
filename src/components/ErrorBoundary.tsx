@@ -44,14 +44,22 @@ export class ErrorBoundary extends Component<Props, State> {
             justifyContent: 'center',
             padding: '2rem',
             textAlign: 'center',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: "'Fonarto', 'Inter', system-ui, sans-serif",
             zIndex: 99999,
           }}
         >
-          <h1 style={{ fontSize: '1.75rem', marginBottom: '1rem', color: '#D4932A' }}>
+          <h1 style={{ fontSize: '1.75rem', marginBottom: '1rem', color: '#018039' }}>
             The Pride of Spices
           </h1>
-          <p style={{ color: 'rgba(242,249,245,0.7)', maxWidth: '480px', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
+          <p
+            style={{
+              color: 'rgba(242,249,245,0.7)',
+              maxWidth: '480px',
+              marginBottom: '1.5rem',
+              fontSize: '0.9rem',
+              lineHeight: '1.5',
+            }}
+          >
             We encountered an unexpected visual issue while rendering the experience.
           </p>
           <button

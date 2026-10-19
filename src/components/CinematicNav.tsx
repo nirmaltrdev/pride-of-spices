@@ -55,7 +55,7 @@ export function CinematicNav() {
     const onScrollUpdate = () => {
       const scrollY = window.scrollY;
       const scrolled = scrollY > 40;
-      setIsScrolled(prev => (prev !== scrolled ? scrolled : prev));
+      setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
 
       // Calculate master timeline progress
       const st = ScrollTrigger.getById('master-scroll-trigger');
@@ -175,10 +175,7 @@ export function CinematicNav() {
     };
 
     const onClickOutside = (e: MouseEvent) => {
-      if (
-        enquireMenuRef.current &&
-        !enquireMenuRef.current.contains(e.target as Node)
-      ) {
+      if (enquireMenuRef.current && !enquireMenuRef.current.contains(e.target as Node)) {
         setEnquireOpen(false);
       }
     };
@@ -201,12 +198,15 @@ export function CinematicNav() {
     }
   }, [mobileOpen]);
 
-  const handleNavClick = useCallback((sceneId: string) => {
-    if (isAutoPlaying) setIsAutoPlaying(false);
-    setMobileOpen(false);
-    setEnquireOpen(false);
-    scrollToScene(sceneId);
-  }, [isAutoPlaying]);
+  const handleNavClick = useCallback(
+    (sceneId: string) => {
+      if (isAutoPlaying) setIsAutoPlaying(false);
+      setMobileOpen(false);
+      setEnquireOpen(false);
+      scrollToScene(sceneId);
+    },
+    [isAutoPlaying]
+  );
 
   return (
     <>
@@ -227,8 +227,7 @@ export function CinematicNav() {
             className="h-full w-full origin-left"
             style={{
               transform: 'scaleX(0)',
-              background:
-                'linear-gradient(90deg, rgba(1,128,57,0.3) 0%, rgba(1,128,57,1.0) 100%)',
+              background: 'linear-gradient(90deg, rgba(1,128,57,0.3) 0%, rgba(1,128,57,1.0) 100%)',
             }}
           />
         </div>
@@ -249,44 +248,31 @@ export function CinematicNav() {
               : '1px solid rgba(255,255,255,0.06)',
           }}
         >
-          {/* Brand Wordmark with logo mark */}
+          {/* Brand Wordmark with official logo */}
           <button
             onClick={() => handleNavClick('arrival')}
-            className="font-serif hover:opacity-90 transition-opacity duration-300 group"
+            className="hover:opacity-90 transition-opacity duration-300 group"
             style={{
-              fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
-              letterSpacing: '0.02em',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              padding: '8px 0',
+              padding: '6px 0',
               minHeight: '44px',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.65rem',
               color: '#F2F9F5',
             }}
             aria-label="The Pride of Spices - Return to beginning"
           >
             <img
               src="/images/logo.svg"
-              alt=""
-              aria-hidden="true"
+              alt="The Pride of Spices"
               style={{
-                width: 'clamp(24px, 3.5vw, 30px)',
-                height: 'auto',
-                filter:
-                  'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
-                opacity: 0.95,
-                flexShrink: 0,
+                height: 'clamp(34px, 4.2vw, 42px)',
+                width: 'auto',
+                display: 'block',
               }}
             />
-            <span>
-              The Pride{' '}
-              <span className="italic" style={{ color: '#018039', marginLeft: '0.18em' }}>
-                of Spices
-              </span>
-            </span>
           </button>
 
           {/* Desktop Nav Links + Progress Indicators */}
@@ -328,9 +314,14 @@ export function CinematicNav() {
               })}
             </div>
 
-            <ul role="list" className="flex items-center m-0 p-0 list-none" style={{ gap: 'clamp(1rem, 2vw, 1.75rem)' }}>
+            <ul
+              role="list"
+              className="flex items-center m-0 p-0 list-none"
+              style={{ gap: 'clamp(1rem, 2vw, 1.75rem)' }}
+            >
               {NAV_LINKS.map((link) => {
-                const isCurrent = activeSceneIdx === NAV_LINKS.findIndex(l => l.sceneId === link.sceneId) + 1;
+                const isCurrent =
+                  activeSceneIdx === NAV_LINKS.findIndex((l) => l.sceneId === link.sceneId) + 1;
                 return (
                   <li key={link.sceneId}>
                     <button
@@ -375,15 +366,15 @@ export function CinematicNav() {
           <div className="hidden md:flex items-center gap-3">
             {/* Auto Tour Toggle */}
             <button
-              onClick={() => setIsAutoPlaying(prev => !prev)}
+              onClick={() => setIsAutoPlaying((prev) => !prev)}
               className="inline-flex items-center font-sans transition-all duration-300 cursor-pointer"
               style={{
                 fontSize: 'clamp(0.65rem, 1.1vw, 0.74rem)',
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: isAutoPlaying ? '#10B981' : '#FDF6EC',
-                background: isAutoPlaying ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.06)',
-                border: isAutoPlaying ? '1px solid #10B981' : '1px solid rgba(255,255,255,0.22)',
+                color: isAutoPlaying ? '#36C12B' : '#F2F9F5',
+                background: isAutoPlaying ? 'rgba(54,193,43,0.18)' : 'rgba(255,255,255,0.06)',
+                border: isAutoPlaying ? '1px solid #36C12B' : '1px solid rgba(255,255,255,0.22)',
                 borderRadius: '3px',
                 padding: '0.5rem 1.1rem',
                 minHeight: '38px',
@@ -397,8 +388,8 @@ export function CinematicNav() {
                   width: '7px',
                   height: '7px',
                   borderRadius: '50%',
-                  backgroundColor: isAutoPlaying ? '#10B981' : 'rgba(253,246,236,0.6)',
-                  boxShadow: isAutoPlaying ? '0 0 10px #10B981' : 'none',
+                  backgroundColor: isAutoPlaying ? '#36C12B' : 'rgba(242,249,245,0.6)',
+                  boxShadow: isAutoPlaying ? '0 0 10px #36C12B' : 'none',
                 }}
               />
               {isAutoPlaying ? 'Auto Tour: ON' : 'Auto Tour'}
@@ -407,7 +398,7 @@ export function CinematicNav() {
             {/* Concierge Enquire Dropdown */}
             <div ref={enquireMenuRef} className="relative">
               <button
-                onClick={() => setEnquireOpen(prev => !prev)}
+                onClick={() => setEnquireOpen((prev) => !prev)}
                 aria-haspopup="dialog"
                 aria-expanded={enquireOpen}
                 className="inline-flex items-center font-sans transition-all duration-300 cursor-pointer"
@@ -553,7 +544,7 @@ export function CinematicNav() {
               border: 'none',
               cursor: 'pointer',
             }}
-            onClick={() => setMobileOpen(o => !o)}
+            onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? 'Toggle navigation menu' : 'Open menu'}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
@@ -614,24 +605,18 @@ export function CinematicNav() {
         >
           {/* Brand header */}
           <div
-            className="absolute left-6 flex items-center gap-2"
-            style={{ top: 'calc(1.2rem + env(safe-area-inset-top))' }}
+            className="absolute left-6 flex items-center"
+            style={{ top: 'calc(1.1rem + env(safe-area-inset-top))' }}
           >
             <img
               src="/images/logo.svg"
-              alt=""
-              aria-hidden="true"
+              alt="The Pride of Spices"
               style={{
-                width: '24px',
-                height: 'auto',
-                filter:
-                  'invert(46%) sepia(64%) saturate(694%) hue-rotate(100deg) brightness(92%)',
-                opacity: 0.85,
+                height: '34px',
+                width: 'auto',
+                display: 'block',
               }}
             />
-            <p className="font-serif text-sm text-cream/70">
-              The Pride <span className="italic text-brand-green">of Spices</span>
-            </p>
           </div>
 
           {/* Close button */}
@@ -658,8 +643,12 @@ export function CinematicNav() {
             Close
           </button>
 
-          <ul role="list" className="flex flex-col items-center m-0 p-0 list-none" style={{ gap: 'clamp(0.5rem, 1.5vh, 1rem)' }}>
-            {NAV_LINKS.map(link => (
+          <ul
+            role="list"
+            className="flex flex-col items-center m-0 p-0 list-none"
+            style={{ gap: 'clamp(0.5rem, 1.5vh, 1rem)' }}
+          >
+            {NAV_LINKS.map((link) => (
               <li key={link.sceneId}>
                 <button
                   onClick={() => handleNavClick(link.sceneId)}

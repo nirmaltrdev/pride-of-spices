@@ -1,7 +1,8 @@
 export const typography = {
   fonts: {
-    serif: "'Playfair Display', Georgia, 'Times New Roman', serif",
-    sans: "'Inter', system-ui, -apple-system, sans-serif",
+    brand: "'Fonarto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    serif: "'Fonarto', 'Playfair Display', Georgia, 'Times New Roman', serif",
+    sans: "'Fonarto', 'Inter', system-ui, -apple-system, sans-serif",
   },
   weights: {
     regular: 400,
@@ -12,5 +13,5 @@ export const typography = {
   tracking: {
     eyebrow: '0.38em',
     tight: '-0.01em',
-  }
+  },
 } as const;

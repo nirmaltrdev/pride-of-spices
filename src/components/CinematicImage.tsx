@@ -5,6 +5,10 @@ interface CinematicImageProps {
   asset: AssetDefinition;
   className?: string;
   style?: React.CSSProperties;
+  imgStyle?: React.CSSProperties;
+  imgClassName?: string;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  objectPosition?: string;
   onLoad?: () => void;
   onError?: () => void;
   sizes?: string;
@@ -19,12 +23,16 @@ interface CinematicImageProps {
  * - Responsive 480w/800w/1200w srcSet negotiation via <picture>
  * - Native AVIF/WebP fallback
  * - Prevention of accidental drag and text selection
- * - Correct object-cover applied to the <img>, not the <picture> wrapper
+ * - Correct object-cover / object-contain applied to the <img>
  */
 export function CinematicImage({
   asset,
   className = '',
   style = {},
+  imgStyle = {},
+  imgClassName = '',
+  objectFit = 'cover',
+  objectPosition,
   onLoad,
   onError,
   sizes = '(max-width: 640px) 480px, (max-width: 1024px) 800px, 1200px',
@@ -73,7 +81,7 @@ export function CinematicImage({
       style={{ background: '#030703', ...style }}
     >
       {/* 1. Responsive Multi-width Sources if defined (480w / 800w / 1200w) */}
-      {asset.responsiveSources?.map(src => (
+      {asset.responsiveSources?.map((src) => (
         <source key={src.type} type={src.type} srcSet={src.srcSet} sizes={sizes} />
       ))}
 
@@ -97,12 +105,14 @@ export function CinematicImage({
         onLoad={handleLoad}
         onError={handleError}
         draggable={false}
-        className="w-full h-full object-cover select-none pointer-events-none"
+        className={`w-full h-full select-none pointer-events-none ${objectFit === 'contain' ? 'object-contain' : objectFit === 'fill' ? 'object-fill' : objectFit === 'scale-down' ? 'object-scale-down' : 'object-cover'} ${imgClassName}`}
         style={{
           opacity: isLoaded ? 1 : 0,
           transition: 'opacity 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
           WebkitUserSelect: 'none',
           userSelect: 'none',
+          objectPosition: objectPosition || undefined,
+          ...imgStyle,
         }}
         width={asset.width}
         height={asset.height}

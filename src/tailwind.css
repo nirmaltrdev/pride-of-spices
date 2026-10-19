@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ═══════════════════════════════════════════════════════════
    THE PRIDE OF SPICES — Design Tokens (Tailwind CSS v4)
@@ -6,59 +6,60 @@
 
 @theme {
   /* ── Official Brand Colors (from brand identity kit) ── */
-  --color-brand-primary: #018039;      /* Primary forest green */
-  --color-brand-secondary: #36C12B;   /* Vibrant leaf green */
-  --color-brand-tertiary: #00491D;    /* Deep forest tertiary */
-  --color-brand-black: #121614;       /* Near-black with green undertone */
-  --color-brand-white: #F2F9F5;       /* Organic off-white */
-  --color-brand-neutral: #D6D9E0;     /* Cool neutral grey */
+  --color-brand-primary: #018039; /* Primary forest green */
+  --color-brand-secondary: #36c12b; /* Vibrant leaf green */
+  --color-brand-tertiary: #00491d; /* Deep forest tertiary */
+  --color-brand-black: #121614; /* Near-black with green undertone */
+  --color-brand-white: #f2f9f5; /* Organic off-white */
+  --color-brand-neutral: #d6d9e0; /* Cool neutral grey */
 
   /* ── Cinematic Experience Palette (dark forest aesthetic) ── */
-  --color-terracotta: #C2452D;
-  --color-terracotta-dark: #9B3624;
-  --color-terracotta-light: #D4674F;
-  --color-turmeric: #D4932A;
-  --color-turmeric-dark: #B07A1E;
-  --color-turmeric-light: #E8B44D;
-  --color-forest: #018039;            /* Updated to match brand primary */
-  --color-forest-dark: #00491D;       /* Updated to match brand tertiary */
-  --color-forest-light: #36C12B;      /* Updated to match brand secondary */
-  --color-forest-muted: #2D6B2E;
-  --color-charcoal: #121614;          /* Updated to brand black */
-  --color-charcoal-light: #1E2420;
-  --color-cream: #F2F9F5;             /* Updated to brand white */
-  --color-cream-dark: #E8F0EB;
-  --color-ivory: #F5F5EF;
-  --color-gold: #C9A84C;
-  --color-gold-light: #DBBF6A;
-  --color-gold-dark: #A88B3A;
+  --color-terracotta: #c2452d;
+  --color-terracotta-dark: #9b3624;
+  --color-terracotta-light: #d4674f;
+  --color-turmeric: #d4932a;
+  --color-turmeric-dark: #b07a1e;
+  --color-turmeric-light: #e8b44d;
+  --color-forest: #018039; /* Updated to match brand primary */
+  --color-forest-dark: #00491d; /* Updated to match brand tertiary */
+  --color-forest-light: #36c12b; /* Updated to match brand secondary */
+  --color-forest-muted: #2d6b2e;
+  --color-charcoal: #121614; /* Updated to brand black */
+  --color-charcoal-light: #1e2420;
+  --color-cream: #f2f9f5; /* Updated to brand white */
+  --color-cream-dark: #e8f0eb;
+  --color-ivory: #f5f5ef;
+  --color-gold: #c9a84c;
+  --color-gold-light: #dbbf6a;
+  --color-gold-dark: #a88b3a;
   --color-mist: rgba(242, 249, 245, 0.6);
-  --color-honey: #D4932A;
-  --color-pepper: #2D2017;
-  --color-cardamom: #018039;          /* Updated to brand primary */
+  --color-honey: #d4932a;
+  --color-pepper: #2d2017;
+  --color-cardamom: #018039; /* Updated to brand primary */
 
-  /* ── Typography ── */
-  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  /* ── Typography (Official Brand Font: Fonarto) ── */
+  --font-brand: 'Fonarto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Fonarto', 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Fonarto', 'Inter', system-ui, -apple-system, sans-serif;
 
   /* ── 8px Spacing Scale ── */
   --space-px: 1px;
-  --space-0-5: 0.25rem;   /*  4px */
-  --space-1: 0.5rem;      /*  8px */
-  --space-1-5: 0.75rem;   /* 12px */
-  --space-2: 1rem;        /* 16px */
-  --space-2-5: 1.25rem;   /* 20px */
-  --space-3: 1.5rem;      /* 24px */
-  --space-4: 2rem;        /* 32px */
-  --space-5: 2.5rem;      /* 40px */
-  --space-6: 3rem;        /* 48px */
-  --space-7: 3.5rem;      /* 56px */
-  --space-8: 4rem;        /* 64px */
-  --space-10: 5rem;       /* 80px */
-  --space-12: 6rem;       /* 96px */
-  --space-16: 8rem;       /* 128px */
-  --space-20: 10rem;      /* 160px */
-  --space-24: 12rem;      /* 192px */
+  --space-0-5: 0.25rem; /*  4px */
+  --space-1: 0.5rem; /*  8px */
+  --space-1-5: 0.75rem; /* 12px */
+  --space-2: 1rem; /* 16px */
+  --space-2-5: 1.25rem; /* 20px */
+  --space-3: 1.5rem; /* 24px */
+  --space-4: 2rem; /* 32px */
+  --space-5: 2.5rem; /* 40px */
+  --space-6: 3rem; /* 48px */
+  --space-7: 3.5rem; /* 56px */
+  --space-8: 4rem; /* 64px */
+  --space-10: 5rem; /* 80px */
+  --space-12: 6rem; /* 96px */
+  --space-16: 8rem; /* 128px */
+  --space-20: 10rem; /* 160px */
+  --space-24: 12rem; /* 192px */
 
   /* ── Fluid Spacing (responsive via clamp) ── */
   --space-section: clamp(5rem, 10vw, 8rem);
@@ -81,21 +82,13 @@
   --radius-badge: 0.25rem;
 
   /* ── Cinematic Multi-layer Shadows ── */
-  --shadow-card:
-    0 4px 16px rgba(0, 0, 0, 0.32),
-    0 0 0 1px rgba(255, 255, 255, 0.04);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.04);
   --shadow-card-hover:
-    0 24px 60px rgba(0, 0, 0, 0.62),
-    0 0 0 1.5px rgba(212, 147, 42, 0.48),
+    0 24px 60px rgba(0, 0, 0, 0.62), 0 0 0 1.5px rgba(212, 147, 42, 0.48),
     0 8px 24px rgba(212, 147, 42, 0.07);
-  --shadow-overlay:
-    0 48px 120px rgba(0, 0, 0, 0.82);
-  --shadow-nav:
-    0 1px 0 rgba(255, 255, 255, 0.055),
-    0 2px 24px rgba(0, 0, 0, 0.18);
-  --shadow-text:
-    0 2px 16px rgba(0, 0, 0, 0.8),
-    0 1px 4px rgba(0, 0, 0, 0.9);
+  --shadow-overlay: 0 48px 120px rgba(0, 0, 0, 0.82);
+  --shadow-nav: 0 1px 0 rgba(255, 255, 255, 0.055), 0 2px 24px rgba(0, 0, 0, 0.18);
+  --shadow-text: 0 2px 16px rgba(0, 0, 0, 0.8), 0 1px 4px rgba(0, 0, 0, 0.9);
 
   /* ── Animations ── */
   --ease-cinematic: cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -126,8 +119,12 @@
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scale-in {
@@ -164,16 +161,30 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes pulse-soft {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }

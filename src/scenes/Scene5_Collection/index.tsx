@@ -88,7 +88,8 @@ const PRODUCTS: ProductData[] = [
       'Grown in the shade of the forest canopy in rich, loamy soil. Harvested after 9 months when the rhizomes reach full maturity.',
     craftsmanship:
       'Boiled, dried, and ground using traditional stone mills that preserve the curcumin-rich oils more effectively than industrial milling.',
-    aroma: 'Warm, earthy, and pungent with a distinctive golden pigment that stains everything it touches.',
+    aroma:
+      'Warm, earthy, and pungent with a distinctive golden pigment that stains everything it touches.',
     image: Assets.turmeric,
     gallery: [],
   },
@@ -301,7 +302,7 @@ export function Scene5_Collection() {
     };
 
     const observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         if (entries[0].isIntersecting) {
           triggerReveal();
         }
@@ -332,10 +333,7 @@ export function Scene5_Collection() {
       aria-label="The Pride of Spices Premium Collection"
     >
       {/* ── BACKGROUND: Forest sunset ambience ── */}
-      <div
-        ref={bgRef}
-        className="absolute inset-0 origin-center pointer-events-none"
-      >
+      <div ref={bgRef} className="absolute inset-0 origin-center pointer-events-none">
         <CinematicImage
           asset={Assets.sunsetBg}
           className="absolute inset-0 w-full h-full"
@@ -465,8 +463,7 @@ export function Scene5_Collection() {
             style={{
               width: '48px',
               height: '1px',
-              background:
-                'linear-gradient(90deg, transparent, rgba(212,147,42,0.65), transparent)',
+              background: 'linear-gradient(90deg, transparent, rgba(212,147,42,0.65), transparent)',
               margin: '2rem auto 0',
             }}
           />
@@ -492,7 +489,9 @@ export function Scene5_Collection() {
               overflow: 'hidden',
               borderRadius: 'clamp(0.75rem, 1.5vw, 1.25rem)',
               transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease',
-              transform: isHoneyHovered ? 'scale(1.012) translateY(-4px)' : 'scale(1) translateY(0)',
+              transform: isHoneyHovered
+                ? 'scale(1.012) translateY(-4px)'
+                : 'scale(1) translateY(0)',
               boxShadow: isHoneyHovered
                 ? '0 24px 60px rgba(0,0,0,0.7), 0 0 0 1.5px rgba(212,147,42,0.55)'
                 : '0 8px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(212,147,42,0.25)',
@@ -503,7 +502,7 @@ export function Scene5_Collection() {
             aria-label={`Explore Featured ${HONEY_PRODUCT.name} — ${HONEY_PRODUCT.origin}`}
             onMouseEnter={() => setIsHoneyHovered(true)}
             onMouseLeave={() => setIsHoneyHovered(false)}
-            onKeyDown={e => {
+            onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 setSelectedProduct(HONEY_PRODUCT);
@@ -511,37 +510,39 @@ export function Scene5_Collection() {
             }}
           >
             <div className="flex flex-col md:flex-row items-center">
-              {/* Image side */}
+              {/* Image side: Full original 1:1 honey image displayed completely at every screen size */}
               <div
-                className="w-full md:w-1/2 relative overflow-hidden"
-                style={{ height: 'clamp(200px, 32vw, 360px)' }}
+                className="w-full md:w-1/2 relative flex items-center justify-center overflow-hidden aspect-square max-h-[360px] sm:max-h-[380px] md:max-h-none md:aspect-auto md:h-[380px] lg:h-[440px] xl:h-[480px] p-3 sm:p-4 md:p-6 lg:p-8"
+                style={{
+                  background:
+                    'radial-gradient(ellipse at center, rgba(32,46,32,0.45) 0%, rgba(10,15,10,0.85) 70%, transparent 100%)',
+                }}
               >
                 <div
+                  className="relative w-full h-full flex items-center justify-center"
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    transition: 'transform 0.7s cubic-bezier(0.22,0.61,0.36,1)',
-                    transform: isHoneyHovered ? 'scale(1.06)' : 'scale(1.0)',
+                    transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                    transform: isHoneyHovered ? 'scale(1.025)' : 'scale(1.0)',
                   }}
                 >
                   <CinematicImage
                     asset={HONEY_PRODUCT.image}
                     className="w-full h-full"
-                    style={{ objectPosition: 'center', objectFit: 'cover' }}
+                    objectFit="contain"
+                    objectPosition="center"
+                    style={{ background: 'transparent' }}
+                    imgStyle={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                    }}
                   />
                 </div>
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      'linear-gradient(to right, transparent 60%, rgba(8,12,8,0.9) 100%), linear-gradient(to top, rgba(8,12,8,0.7) 0%, transparent 40%)',
-                  }}
-                />
               </div>
 
               {/* Text side */}
               <div
-                className="w-full md:w-1/2 p-6 md:p-8 lg:p-10 flex flex-col justify-center"
+                className="w-full md:w-1/2 p-5 sm:p-6 md:p-8 lg:p-10 flex flex-col justify-center"
                 style={{ gap: '0.85rem' }}
               >
                 <div className="flex items-center gap-2.5">
@@ -576,14 +577,14 @@ export function Scene5_Collection() {
 
                 <div className="pt-2">
                   <div
-                    className="inline-flex items-center gap-2 rounded-full font-semibold uppercase transition-all duration-300"
+                    className="inline-flex items-center gap-2 rounded-full font-semibold uppercase transition-all duration-300 max-w-full"
                     style={{
-                      fontSize: '0.72rem',
-                      letterSpacing: '0.2em',
+                      fontSize: 'clamp(0.65rem, 2vw, 0.72rem)',
+                      letterSpacing: 'clamp(0.12em, 0.5vw, 0.2em)',
                       color: isHoneyHovered ? '#FFFFFF' : '#FDF6EC',
                       background: isHoneyHovered ? '#018039' : 'rgba(1,128,57,0.75)',
                       border: '1px solid rgba(1,128,57,0.9)',
-                      padding: '0.45rem 1.15rem',
+                      padding: '0.45rem clamp(0.75rem, 2vw, 1.15rem)',
                       boxShadow: isHoneyHovered ? '0 4px 16px rgba(1,128,57,0.4)' : 'none',
                     }}
                   >
@@ -623,11 +624,7 @@ export function Scene5_Collection() {
             const isHovered = hoveredIdx === idx;
 
             return (
-              <div
-                key={product.id}
-                data-product-item
-                className="w-full"
-              >
+              <div key={product.id} data-product-item className="w-full">
                 <div
                   onClick={() => setSelectedProduct(product)}
                   style={{
@@ -638,7 +635,9 @@ export function Scene5_Collection() {
                     aspectRatio: '4 / 5',
                     transition:
                       'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease',
-                    transform: isHovered ? 'scale(1.02) translateY(-4px)' : 'scale(1) translateY(0)',
+                    transform: isHovered
+                      ? 'scale(1.02) translateY(-4px)'
+                      : 'scale(1) translateY(0)',
                     boxShadow: isHovered
                       ? '0 20px 48px rgba(0,0,0,0.65), 0 0 0 1.5px rgba(212,147,42,0.5)'
                       : '0 4px 16px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.06)',
@@ -649,7 +648,7 @@ export function Scene5_Collection() {
                   aria-label={`Explore ${product.name} — ${product.origin}`}
                   onMouseEnter={() => setHoveredIdx(idx)}
                   onMouseLeave={() => setHoveredIdx(null)}
-                  onKeyDown={e => {
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       setSelectedProduct(product);
@@ -782,6 +781,19 @@ export function Scene5_Collection() {
           gap: 'clamp(2rem, 4vh, 3rem)',
         }}
       >
+        {/* Official Brand Logo */}
+        <img
+          src="/images/logo.svg"
+          alt="The Pride of Spices"
+          style={{
+            height: 'clamp(42px, 5.5vw, 60px)',
+            width: 'auto',
+            display: 'block',
+            margin: '0 auto 0.75rem auto',
+            opacity: 0.95,
+          }}
+        />
+
         {/* Prominent Delivery Tagline */}
         <div className="text-center max-w-2xl mx-auto">
           <p
@@ -805,7 +817,8 @@ export function Scene5_Collection() {
             className="font-sans text-cream/70 mt-3"
             style={{ fontSize: 'clamp(0.85rem, 1.5vw, 1rem)', letterSpacing: '0.04em' }}
           >
-            Freshly harvested, traditional grade spices &amp; pure forest honey delivered directly to your home.
+            Freshly harvested, traditional grade spices &amp; pure forest honey delivered directly
+            to your home.
           </p>
         </div>
 
@@ -821,9 +834,7 @@ export function Scene5_Collection() {
         >
           "From the forests of Wayanad to your table —
           <br />
-          <span style={{ color: '#D4932A' }}>
-            uncompromised, unadulterated, unchanged."
-          </span>
+          <span style={{ color: '#D4932A' }}>uncompromised, unadulterated, unchanged."</span>
         </p>
 
         {/* Heritage stats row */}
@@ -836,7 +847,7 @@ export function Scene5_Collection() {
             { num: '800m+', label: 'Elevation' },
             { num: '3rd Gen', label: 'Farmers' },
             { num: 'Raw', label: 'Unprocessed' },
-          ].map(stat => (
+          ].map((stat) => (
             <div
               key={stat.label}
               className="text-center flex flex-col items-center"
@@ -882,7 +893,7 @@ export function Scene5_Collection() {
           </div>
           <a
             href="#"
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault();
               scrollToPixels(0);
             }}
@@ -901,15 +912,13 @@ export function Scene5_Collection() {
             paddingBottom: 'max(0px, env(safe-area-inset-bottom))',
           }}
         >
-          © {new Date().getFullYear()} Pride of Spices · Wayanad, Kerala, India · theprideofspices12@gmail.com
+          © {new Date().getFullYear()} Pride of Spices · Wayanad, Kerala, India ·
+          theprideofspices12@gmail.com
         </p>
       </div>
 
       {/* Product Detail Overlay */}
-      <ProductOverlay
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-      />
+      <ProductOverlay product={selectedProduct} onClose={() => setSelectedProduct(null)} />
     </section>
   );
 }
