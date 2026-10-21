@@ -278,7 +278,7 @@ export function Scene1_Arrival() {
           {/* Eyebrow */}
           <p
             ref={eyebrowRef}
-            className="font-sans text-cream/80 uppercase select-none font-medium"
+            className="cover-eyebrow font-brand text-cream/80 uppercase select-none font-medium"
             style={{
               fontSize: 'clamp(0.72rem, 1.4vw, 0.85rem)',
               letterSpacing: '0.38em',
@@ -288,10 +288,10 @@ export function Scene1_Arrival() {
             From the Heart of Wayanad
           </p>
 
-          {/* Main Title (Single authoritative H1 on page) */}
+          {/* Main Title (Single authoritative H1 on page — exclusively Fonarto) */}
           <h1
             ref={headingRef}
-            className="font-serif text-cream select-none font-semibold"
+            className="cover-title font-brand text-cream select-none font-semibold"
             style={{
               fontSize: 'clamp(2.6rem, 10vw, 8.5rem)',
               lineHeight: 1.02,
@@ -313,7 +313,7 @@ export function Scene1_Arrival() {
           {/* Subtitle */}
           <div
             ref={subtitleRef}
-            className="font-sans text-cream select-none mt-4 mx-auto max-w-2xl px-2"
+            className="cover-subtitle font-brand text-cream select-none mt-4 mx-auto max-w-2xl px-2"
           >
             <p
               className="font-medium text-cream/90"
@@ -343,7 +343,7 @@ export function Scene1_Arrival() {
           <button 
             ref={scrollCueRef} 
             type="button"
-            className="flex flex-col items-center gap-2.5 cursor-pointer pointer-events-auto mx-auto group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-full" 
+            className="cover-cta flex flex-col items-center gap-2.5 cursor-pointer pointer-events-auto mx-auto group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-full"
             style={{
               marginTop: 'clamp(1.75rem, 4vh, 3rem)',
               background: 'transparent',
@@ -354,7 +354,7 @@ export function Scene1_Arrival() {
             aria-label="Scroll or click to enter the Wayanad spice journey"
           >
             <span
-              className="font-sans text-cream/90 uppercase font-semibold transition-all duration-300 group-hover:text-gold group-hover:border-gold/60"
+              className="font-brand text-cream/90 uppercase font-semibold transition-all duration-300 group-hover:text-gold group-hover:border-gold/60"
               style={{
                 fontSize: 'clamp(0.62rem, 1.1vw, 0.72rem)',
                 letterSpacing: '0.3em',

@@ -79,6 +79,21 @@ h6 {
   text-wrap: balance;
 }
 
+/* ── Opening Cover / Hero Section: Fonarto Scope (Exclusively for Cover) ── */
+#scene-arrival,
+#scene-arrival h1,
+#scene-arrival h2,
+#scene-arrival p,
+#scene-arrival span,
+#scene-arrival button,
+#scene-arrival .cover-title,
+#scene-arrival .cover-eyebrow,
+#scene-arrival .cover-subtitle,
+#scene-arrival .cover-cta,
+.cover-hero-fonarto {
+  font-family: var(--font-brand);
+}
+
 /* ── Links ── */
 a {
   color: inherit;

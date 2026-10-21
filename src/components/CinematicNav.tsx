@@ -265,10 +265,10 @@ export function CinematicNav() {
             aria-label="The Pride of Spices - Return to beginning"
           >
             <img
-              src="/images/logo.svg"
-              alt="The Pride of Spices"
+              src="/images/logo-brand-light.svg"
+              alt="The Pride of Spices — Official Logo"
               style={{
-                height: 'clamp(34px, 4.2vw, 42px)',
+                height: 'clamp(40px, 4.5vw, 48px)',
                 width: 'auto',
                 display: 'block',
               }}
@@ -609,10 +609,10 @@ export function CinematicNav() {
             style={{ top: 'calc(1.1rem + env(safe-area-inset-top))' }}
           >
             <img
-              src="/images/logo.svg"
-              alt="The Pride of Spices"
+              src="/images/logo-brand-light.svg"
+              alt="The Pride of Spices — Official Logo"
               style={{
-                height: '34px',
+                height: '38px',
                 width: 'auto',
                 display: 'block',
               }}

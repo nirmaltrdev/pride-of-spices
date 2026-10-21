@@ -783,14 +783,14 @@ export function Scene5_Collection() {
       >
         {/* Official Brand Logo */}
         <img
-          src="/images/logo.svg"
-          alt="The Pride of Spices"
+          src="/images/logo-brand-light.svg"
+          alt="The Pride of Spices — Official Logo"
           style={{
-            height: 'clamp(42px, 5.5vw, 60px)',
+            height: 'clamp(48px, 6vw, 68px)',
             width: 'auto',
             display: 'block',
             margin: '0 auto 0.75rem auto',
-            opacity: 0.95,
+            opacity: 1,
           }}
         />
 

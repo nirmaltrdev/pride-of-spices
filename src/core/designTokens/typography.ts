@@ -1,8 +1,8 @@
 export const typography = {
   fonts: {
     brand: "'Fonarto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    serif: "'Fonarto', 'Playfair Display', Georgia, 'Times New Roman', serif",
-    sans: "'Fonarto', 'Inter', system-ui, -apple-system, sans-serif",
+    serif: "'Playfair Display', Georgia, 'Times New Roman', serif",
+    sans: "'Inter', system-ui, -apple-system, sans-serif",
   },
   weights: {
     regular: 400,
